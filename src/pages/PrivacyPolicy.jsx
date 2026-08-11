@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
               size={18}
               aria-hidden="true"
             />
-            Back to Histopository
+            Back Home
           </Link>
           <div className="privacy-brand">
             <img
