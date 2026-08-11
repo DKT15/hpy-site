@@ -13,7 +13,6 @@ import {
 import NewsletterSignup from '../components/NewsletterSignup';
 
 
-
 const benefits = [
   {
     title: 'Fascinating Stories',
@@ -65,10 +64,6 @@ function YouTubeIcon() {
 export default function LandingPage() {
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
-
       <div className="site">
         <header className="site-header">
           <div className="container header-inner">
