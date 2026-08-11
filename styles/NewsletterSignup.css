@@ -1,0 +1,223 @@
+.newsletter {
+  width: 100%;
+  max-width: 620px;
+}
+
+.signup-form {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.email-field {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.email-icon {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  z-index: 2;
+
+  width: 20px;
+  height: 20px;
+
+  color: #c9a228;
+
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.email-field input {
+  width: 100%;
+  min-height: 60px;
+
+  padding: 0 20px 0 52px;
+
+  border: 1px solid transparent;
+  border-radius: 10px 0 0 10px;
+
+  background: #ffffff;
+  color: #27323a;
+
+  font-size: 1rem;
+
+  outline: none;
+}
+
+.email-field input::placeholder {
+  color: #737c81;
+  opacity: 1;
+}
+
+.email-field input:focus-visible {
+  position: relative;
+  z-index: 1;
+
+  border-color: #c9a228;
+
+  box-shadow:
+    inset 0 0 0 2px rgba(201, 162, 40, 0.22);
+}
+
+/* ---------- Submit button ---------- */
+
+.signup-button {
+  min-height: 60px;
+
+  flex: 0 0 auto;
+
+  padding: 0 30px;
+
+  border: 1px solid #c9a228;
+  border-radius: 0 10px 10px 0;
+
+  background: #c9a228;
+  color: #ffffff;
+
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+
+  transition:
+    filter 160ms ease,
+    transform 160ms ease;
+}
+
+.signup-button:hover:not(:disabled) {
+  filter: brightness(1.07);
+}
+
+.signup-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.signup-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* Honeypot field */
+
+/*
+  This field is deliberately hidden from real users.
+  Bots may still try to fill it in.
+*/
+
+.honeypot-field {
+  position: absolute !important;
+
+  width: 1px !important;
+  height: 1px !important;
+
+  padding: 0 !important;
+  margin: -1px !important;
+
+  overflow: hidden !important;
+
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+
+  white-space: nowrap !important;
+
+  border: 0 !important;
+}
+
+
+.no-spam-line {
+  margin: 14px 0 0;
+
+  color: rgba(241, 230, 201, 0.86);
+
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.privacy-line {
+  margin: 10px 0 0;
+
+  color: rgba(241, 230, 201, 0.68);
+
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.privacy-line a {
+  color: #f1e6c9;
+  text-underline-offset: 3px;
+}
+
+.privacy-line a:hover {
+  color: #c9a228;
+}
+
+
+.form-message {
+  margin: 10px 0 0;
+
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.form-message.success {
+  color: #d5efd8;
+}
+
+.form-message.error {
+  color: #ffd1d1;
+}
+
+/* Accessibility */
+
+.signup-button:focus-visible,
+.email-field input:focus-visible,
+.privacy-line a:focus-visible {
+  outline: 3px solid #c9a228;
+  outline-offset: 4px;
+}
+
+/* Mobile */
+
+@media (max-width: 680px) {
+  .newsletter {
+    max-width: none;
+  }
+
+  .signup-form {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .email-field {
+    width: 100%;
+  }
+
+  .email-field input {
+    min-height: 56px;
+
+    border-radius: 10px;
+  }
+
+  .signup-button {
+    width: 100%;
+    min-height: 56px;
+
+    border-radius: 10px;
+  }
+
+  .no-spam-line {
+    margin-top: 12px;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .signup-button {
+    transition: none;
+  }
+}
