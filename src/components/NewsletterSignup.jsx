@@ -242,7 +242,6 @@ export default function NewsletterSignup() {
         <a href="/privacy">
           Privacy policy
         </a>
-        .
       </p>
     </div>
   );
