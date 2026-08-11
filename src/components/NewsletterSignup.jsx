@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useId, useRef, useState } from 'react';
 import { Mail } from 'lucide-react';
 import '/styles/NewsletterSignup.css';
@@ -181,8 +182,8 @@ export default function NewsletterSignup() {
           disabled={status === 'loading'}
         >
           {status === 'loading'
-            ? 'Joining…'
-            : 'Join Histopository'}
+            ? 'Subscribing…'
+            : 'Subscribe'}
         </button>
 
         <div
@@ -239,9 +240,9 @@ export default function NewsletterSignup() {
       <p className="privacy-line">
         By joining, you agree to receive Histopository
         emails.{' '}
-        <a href="/privacy">
+        <Link to="/privacy">
           Privacy policy
-        </a>
+        </Link>
       </p>
     </div>
   );
