@@ -1,17 +1,3 @@
-/**
- * Histopository newsletter signup.
- * Public route: POST /api/subscribe
- *
- * REQUIRED NETLIFY ENVIRONMENT VARIABLE:
- *   MAILERLITE_API_KEY=REPLACE_WITH_MAILERLITE_API_KEY
- *
- * RECOMMENDED NETLIFY ENVIRONMENT VARIABLE:
- *   MAILERLITE_GROUP_ID=REPLACE_WITH_MAILERLITE_GROUP_ID
- *
- * Never expose the MailerLite API key in React, Vite VITE_* variables,
- * a committed .env file, or any browser-side code.
- */
-
 const MAILERLITE_ENDPOINT = 'https://connect.mailerlite.com/api/subscribers';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -58,13 +44,8 @@ export default async function subscribe(request) {
     return json({ message: 'Please enter a valid email address.' }, 400);
   }
 
-  // ======================== REQUIRED PLACEHOLDER ========================
-  // Netlify -> Project configuration -> Environment variables
-  // MAILERLITE_API_KEY=REPLACE_WITH_MAILERLITE_API_KEY
   const apiKey = process.env.MAILERLITE_API_KEY;
 
-  // ====================== RECOMMENDED PLACEHOLDER =======================
-  // MAILERLITE_GROUP_ID=REPLACE_WITH_MAILERLITE_GROUP_ID
   const groupId = process.env.MAILERLITE_GROUP_ID?.trim();
 
   if (!apiKey) {
