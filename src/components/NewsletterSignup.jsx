@@ -86,6 +86,30 @@ export default function NewsletterSignup() {
 
       const data = await response.json().catch(() => ({}));
 
+      if (data.status === 'active') {
+        setEmail('');
+        setStatus('success');
+        setMessage("You're already subscribed.");
+        return;
+      }
+
+      if (data.status === 'unconfirmed') {
+        setEmail('');
+        setStatus('success');
+        setMessage(
+          "You've already subscribed. Check your inbox to confirm your email address."
+        );
+        return;
+      }
+
+      if (data.status === 'unsubscribed') {
+        setStatus('error');
+        setMessage(
+          "This email was previously unsubscribed. Please contact us if you'd like to rejoin."
+        );
+        return;
+      }
+
       if (!response.ok) {
         throw new Error(
           data.message ||
@@ -95,7 +119,9 @@ export default function NewsletterSignup() {
 
       setEmail('');
       setStatus('success');
-      setMessage('Thanks. Your signup has been received.');
+      setMessage(
+        'Almost there! Check your inbox and confirm your email address.'
+      );
     } catch (error) {
       const isTimeout = error?.name === 'AbortError';
 
@@ -223,16 +249,16 @@ export default function NewsletterSignup() {
       )}
 
       {message && (
-  <p
-    id={statusId}
-    className={`form-message ${status}`}
-    role={status === 'error' ? 'alert' : 'status'}
-    aria-live={status === 'error' ? 'assertive' : 'polite'}
-  >
-    {status === 'success' && <span aria-hidden="true">✓</span>}
-    {message}
-  </p>
-)}
+        <p
+          id={statusId}
+          className={`form-message ${status}`}
+          role={status === 'error' ? 'alert' : 'status'}
+          aria-live={status === 'error' ? 'assertive' : 'polite'}
+        >
+          {status === 'success' && <span aria-hidden="true">✓</span>}
+          {message}
+        </p>
+      )}
 
       <p className="privacy-line">
         By joining, you agree to receive Histopository
