@@ -1,0 +1,12 @@
+# Histopository
+
+Histopository is a history platform focused on making history engaging through stories, quizzes, resources and educational content.
+
+## Main pages
+
+- [Homepage](https://histopository.com/)
+- [Privacy Policy](https://histopository.com/privacy)
+
+## About
+
+Histopository aims to help people explore history through accessible, engaging and educational content.
