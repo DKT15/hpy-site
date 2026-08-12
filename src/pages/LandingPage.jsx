@@ -158,7 +158,7 @@ export default function LandingPage() {
                 aria-label="Histopository social media"
               >
                 <a
-                  href="REPLACE_WITH_TIKTOK_URL"
+                  href="https://www.tiktok.com/@histopository"
                   className="social-link"
                   aria-label="Histopository on TikTok"
                   target="_blank"
@@ -168,7 +168,7 @@ export default function LandingPage() {
                 </a>
 
                 <a
-                  href="REPLACE_WITH_YOUTUBE_URL"
+                  href="https://www.youtube.com/@histopository"
                   className="social-link"
                   aria-label="Histopository on YouTube"
                   target="_blank"
