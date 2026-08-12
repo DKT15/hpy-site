@@ -3,6 +3,16 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[dev]
+  command = "npm run dev"
+  targetPort = 5173
+
+# API route must come before the SPA fallback.
+[[redirects]]
+  from = "/api/subscribe"
+  to = "/.netlify/functions/subscribe"
+  status = 200
+
 # React/Vite SPA fallback.
 [[redirects]]
   from = "/*"
@@ -12,6 +22,7 @@
 # Baseline browser hardening for static responses.
 [[headers]]
   for = "/*"
+
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
