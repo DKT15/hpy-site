@@ -3,20 +3,10 @@
   publish = "dist"
   functions = "netlify/functions"
 
-[dev]
-  command = "npm run dev"
-  targetPort = 5173
-
 # API route must come before the SPA fallback.
 [[redirects]]
   from = "/api/subscribe"
   to = "/.netlify/functions/subscribe"
-  status = 200
-
-# React/Vite SPA fallback.
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
   status = 200
 
 # Baseline browser hardening for static responses.
@@ -28,7 +18,3 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
-
-# When the site is stable, consider adding an enforced Content-Security-Policy.
-# Netlify recommends testing CSP in Report-Only mode first so you can identify
-# legitimate resources before blocking them.

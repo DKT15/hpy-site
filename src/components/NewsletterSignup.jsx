@@ -223,19 +223,16 @@ export default function NewsletterSignup() {
       )}
 
       {message && (
-        <p
-          id={statusId}
-          className={`form-message ${status}`}
-          role={status === 'error' ? 'alert' : 'status'}
-          aria-live={
-            status === 'error'
-              ? 'assertive'
-              : 'polite'
-          }
-        >
-          {message}
-        </p>
-      )}
+  <p
+    id={statusId}
+    className={`form-message ${status}`}
+    role={status === 'error' ? 'alert' : 'status'}
+    aria-live={status === 'error' ? 'assertive' : 'polite'}
+  >
+    {status === 'success' && <span aria-hidden="true">✓</span>}
+    {message}
+  </p>
+)}
 
       <p className="privacy-line">
         By joining, you agree to receive Histopository
