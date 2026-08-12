@@ -62,7 +62,7 @@ export default function LandingPage() {
             <a className="brand" href="/" aria-label="Histopository home">
               <img
                 src="/histopository-logo.png"
-                alt=""
+                alt="Histopository logo"
                 className="brand-logo"
               />
 
@@ -146,7 +146,7 @@ export default function LandingPage() {
               >
                 <img
                   src="/histopository-logo.png"
-                  alt=""
+                  alt="Histopository logo"
                   className="brand-logo"
                 />
               </a>

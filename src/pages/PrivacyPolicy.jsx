@@ -14,7 +14,7 @@ export default function PrivacyPolicy() {
           <div className="privacy-brand">
             <img
               src="/histopository-logo.png"
-              alt=""
+              alt="Histopository logo"
               className="privacy-logo"
             />
 
