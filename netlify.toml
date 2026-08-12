@@ -3,10 +3,22 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[[redirects]]
+  from = "https://hpy-site.netlify.app/*"
+  to = "https://histopository.com/:splat"
+  status = 301
+  force = true
+
 # API route must come before the SPA fallback.
 [[redirects]]
   from = "/api/subscribe"
   to = "/.netlify/functions/subscribe"
+  status = 200
+
+# React/Vite SPA fallback.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200
 
 # Baseline browser hardening for static responses.
@@ -18,3 +30,4 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+
