@@ -84,7 +84,6 @@ a {
   border: 0 !important;
 }
 
-
 /* Header */
 
 .site-header {
@@ -152,14 +151,13 @@ a {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    linear-gradient(
-      90deg,
-      rgba(6, 31, 49, 0.92) 0%,
-      rgba(6, 31, 49, 0.58) 43%,
-      rgba(6, 31, 49, 0.08) 72%,
-      transparent 100%
-    );
+  background: linear-gradient(
+    90deg,
+    rgba(6, 31, 49, 0.92) 0%,
+    rgba(6, 31, 49, 0.58) 43%,
+    rgba(6, 31, 49, 0.08) 72%,
+    transparent 100%
+  );
 }
 
 .hero-grid {
@@ -686,74 +684,72 @@ input:focus-visible {
   }
 
   .footer-inner {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: nowrap;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
 
-  width: 100%;
-  gap: 22px;
-}
+    width: 100%;
+    gap: 22px;
+  }
 
-.footer-brand {
-  width: auto;
+  .footer-brand {
+    width: auto;
 
-  flex-direction: row;
-  align-items: center;
+    flex-direction: row;
+    align-items: center;
 
-  gap: 0;
-}
+    gap: 0;
+  }
 
-/* Keep just the logo mark on smaller screens */
-.footer-logo .brand-name {
-  display: none;
-}
+  /* Keep just the logo mark on smaller screens */
+  .footer-logo .brand-name {
+    display: none;
+  }
 
-.footer-logo .brand-logo {
-  width: 42px;
-  height: 42px;
-  flex-basis: 42px;
-}
+  .footer-logo .brand-logo {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
 
-.footer-brand > p {
-  display: none;
-}
+  .footer-brand > p {
+    display: none;
+  }
 
-.footer-right {
-  width: auto;
+  .footer-right {
+    width: auto;
 
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 
-  gap: 22px;
-}
+    gap: 22px;
+  }
 
-.social-links {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  .social-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  gap: 12px;
-}
+    gap: 12px;
+  }
 
-.social-link {
-  width: 40px;
-  height: 40px;
+  .social-link {
+    width: 40px;
+    height: 40px;
 
-  display: grid;
-  place-items: center;
-}
+    display: grid;
+    place-items: center;
+  }
 
-.copyright {
-  margin: 0;
-
-  white-space: nowrap;
-
-  font-size: 0.82rem;
-  line-height: 1;
-}
+  .copyright {
+    margin: 0;
+    white-space: nowrap;
+    font-size: 0.82rem;
+    line-height: 1;
+  }
 }
 
 @media (max-width: 420px) {
@@ -768,7 +764,6 @@ input:focus-visible {
   .hero h1 {
     font-size: clamp(2.85rem, 15.5vw, 4rem);
   }
-
 
   .footer-inner {
     gap: 14px;

@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom';
-import { useId, useRef, useState } from 'react';
-import { Mail } from 'lucide-react';
-import '/styles/NewsletterSignup.css';
+import { Link } from "react-router-dom";
+import { useId, useRef, useState } from "react";
+import { Mail } from "lucide-react";
+import "/styles/NewsletterSignup.css";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -9,25 +9,25 @@ function validateEmail(value) {
   const email = value.trim();
 
   if (!email) {
-    return 'Enter your email address.';
+    return "Enter your email address.";
   }
 
   if (email.length > 254 || !EMAIL_PATTERN.test(email)) {
-    return 'Enter a valid email address.';
+    return "Enter a valid email address.";
   }
 
-  return '';
+  return "";
 }
 
 export default function NewsletterSignup() {
-  const [email, setEmail] = useState('');
-  const [fieldError, setFieldError] = useState('');
-  const [status, setStatus] = useState('idle');
-  const [message, setMessage] = useState('');
+  const [email, setEmail] = useState("");
+  const [fieldError, setFieldError] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
 
   const emailInputRef = useRef(null);
 
-  const uid = useId().replaceAll(':', '');
+  const uid = useId().replaceAll(":", "");
 
   const emailId = `newsletter-email-${uid}`;
   const helpId = `newsletter-help-${uid}`;
@@ -43,17 +43,17 @@ export default function NewsletterSignup() {
 
     if (validationMessage) {
       setFieldError(validationMessage);
-      setStatus('idle');
-      setMessage('');
+      setStatus("idle");
+      setMessage("");
 
       emailInputRef.current?.focus();
 
       return;
     }
 
-    setFieldError('');
-    setStatus('loading');
-    setMessage('');
+    setFieldError("");
+    setStatus("loading");
+    setMessage("");
 
     const controller = new AbortController();
 
@@ -62,12 +62,12 @@ export default function NewsletterSignup() {
     }, 12000);
 
     try {
-      const response = await fetch('/api/subscribe', {
-        method: 'POST',
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
 
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
 
         signal: controller.signal,
@@ -79,59 +79,57 @@ export default function NewsletterSignup() {
            * Honeypot field.
            * Real users should never fill this in.
            */
-          company:
-            event.currentTarget.elements.company?.value || ''
-        })
+          company: event.currentTarget.elements.company?.value || "",
+        }),
       });
 
       const data = await response.json().catch(() => ({}));
 
-      if (data.status === 'active') {
-        setEmail('');
-        setStatus('success');
+      if (data.status === "active") {
+        setEmail("");
+        setStatus("success");
         setMessage("You're already subscribed.");
         return;
       }
 
-      if (data.status === 'unconfirmed') {
-        setEmail('');
-        setStatus('success');
+      if (data.status === "unconfirmed") {
+        setEmail("");
+        setStatus("success");
         setMessage(
-          "You've already subscribed. Check your inbox to confirm your email address."
+          "You've already subscribed. Check your inbox to confirm your email address.",
         );
         return;
       }
 
-      if (data.status === 'unsubscribed') {
-        setStatus('error');
+      if (data.status === "unsubscribed") {
+        setStatus("error");
         setMessage(
-          "This email was previously unsubscribed. Please contact us if you'd like to rejoin."
+          "This email was previously unsubscribed. Please contact us if you'd like to rejoin.",
         );
         return;
       }
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            'We could not process your signup right now.'
+          data.message || "We could not process your signup right now.",
         );
       }
 
-      setEmail('');
-      setStatus('success');
+      setEmail("");
+      setStatus("success");
       setMessage(
-        'Almost there! Check your inbox and confirm your email address.'
+        "Almost there! Check your inbox and confirm your email address.",
       );
     } catch (error) {
-      const isTimeout = error?.name === 'AbortError';
+      const isTimeout = error?.name === "AbortError";
 
-      setStatus('error');
+      setStatus("error");
 
       setMessage(
         isTimeout
-          ? 'The signup took too long. Please try again.'
+          ? "The signup took too long. Please try again."
           : error?.message ||
-              'Unable to subscribe right now. Please try again.'
+              "Unable to subscribe right now. Please try again.",
       );
     } finally {
       window.clearTimeout(timeoutId);
@@ -142,22 +140,22 @@ export default function NewsletterSignup() {
     setEmail(event.target.value);
 
     if (fieldError) {
-      setFieldError('');
+      setFieldError("");
     }
 
-    if (status !== 'idle') {
-      setStatus('idle');
-      setMessage('');
+    if (status !== "idle") {
+      setStatus("idle");
+      setMessage("");
     }
   }
 
   const describedBy = [
     helpId,
-    fieldError ? errorId : '',
-    message ? statusId : ''
+    fieldError ? errorId : "",
+    message ? statusId : "",
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 
   return (
     <div className="newsletter">
@@ -165,7 +163,7 @@ export default function NewsletterSignup() {
         className="signup-form"
         onSubmit={handleSubmit}
         noValidate
-        aria-busy={status === 'loading'}
+        aria-busy={status === "loading"}
       >
         <div className="email-field">
           <Mail
@@ -175,10 +173,7 @@ export default function NewsletterSignup() {
             aria-hidden="true"
           />
 
-          <label
-            className="sr-only"
-            htmlFor={emailId}
-          >
+          <label className="sr-only" htmlFor={emailId}>
             Email address
           </label>
 
@@ -193,11 +188,9 @@ export default function NewsletterSignup() {
             value={email}
             onChange={handleEmailChange}
             aria-describedby={describedBy}
-            aria-invalid={fieldError ? 'true' : 'false'}
-            aria-errormessage={
-              fieldError ? errorId : undefined
-            }
-            disabled={status === 'loading'}
+            aria-invalid={fieldError ? "true" : "false"}
+            aria-errormessage={fieldError ? errorId : undefined}
+            disabled={status === "loading"}
             required
           />
         </div>
@@ -205,20 +198,13 @@ export default function NewsletterSignup() {
         <button
           className="signup-button"
           type="submit"
-          disabled={status === 'loading'}
+          disabled={status === "loading"}
         >
-          {status === 'loading'
-            ? 'Subscribing…'
-            : 'Subscribe'}
+          {status === "loading" ? "Subscribing…" : "Subscribe"}
         </button>
 
-        <div
-          className="honeypot-field"
-          aria-hidden="true"
-        >
-          <label htmlFor={companyId}>
-            Company
-          </label>
+        <div className="honeypot-field" aria-hidden="true">
+          <label htmlFor={companyId}>Company</label>
 
           <input
             id={companyId}
@@ -230,20 +216,12 @@ export default function NewsletterSignup() {
         </div>
       </form>
 
-      <p
-        className="no-spam-line"
-        id={helpId}
-      >
-        <span aria-hidden="true">◆</span>{' '}
-        No spam. Unsubscribe anytime.
+      <p className="no-spam-line" id={helpId}>
+        <span aria-hidden="true">◆</span> No spam. Unsubscribe anytime.
       </p>
 
       {fieldError && (
-        <p
-          id={errorId}
-          className="field-error"
-          role="alert"
-        >
+        <p id={errorId} className="field-error" role="alert">
           {fieldError}
         </p>
       )}
@@ -252,20 +230,17 @@ export default function NewsletterSignup() {
         <p
           id={statusId}
           className={`form-message ${status}`}
-          role={status === 'error' ? 'alert' : 'status'}
-          aria-live={status === 'error' ? 'assertive' : 'polite'}
+          role={status === "error" ? "alert" : "status"}
+          aria-live={status === "error" ? "assertive" : "polite"}
         >
-          {status === 'success' && <span aria-hidden="true">✓</span>}
+          {status === "success" && <span aria-hidden="true">✓</span>}
           {message}
         </p>
       )}
 
       <p className="privacy-line">
-        By joining, you agree to receive Histopository
-        emails.{' '}
-        <Link to="/privacy">
-          Privacy policy
-        </Link>
+        By joining, you agree to receive Histopository emails.{" "}
+        <Link to="/privacy">Privacy policy</Link>
       </p>
     </div>
   );

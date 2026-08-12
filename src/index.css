@@ -41,7 +41,6 @@ body {
   min-height: 100vh;
 }
 
-
 body,
 button,
 input,
@@ -67,7 +66,6 @@ select {
   color: inherit;
 }
 
-
 img,
 picture,
 svg,
@@ -83,7 +81,6 @@ img {
 a {
   color: inherit;
 }
-
 
 button,
 input {

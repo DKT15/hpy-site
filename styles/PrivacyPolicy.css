@@ -2,11 +2,7 @@
   min-height: 100vh;
   padding: 32px 0 64px;
   background:
-    radial-gradient(
-      circle at 50% 0%,
-      rgba(31, 90, 95, 0.2),
-      transparent 34%
-    ),
+    radial-gradient(circle at 50% 0%, rgba(31, 90, 95, 0.2), transparent 34%),
     #061f31;
   color: #f1e6c9;
 }
@@ -72,16 +68,14 @@
 .privacy-content {
   overflow: hidden;
 
-  border:
-    1px solid rgba(201, 162, 40, 0.2);
+  border: 1px solid rgba(201, 162, 40, 0.2);
 
   border-radius: 18px;
 
   background: #f7f1e4;
   color: #173246;
 
-  box-shadow:
-    0 28px 70px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.22);
 }
 
 /* Intro */
@@ -89,8 +83,7 @@
 .privacy-intro {
   padding: 64px 64px 52px;
 
-  border-bottom:
-    1px solid rgba(201, 162, 40, 0.24);
+  border-bottom: 1px solid rgba(201, 162, 40, 0.24);
 
   text-align: center;
 }
@@ -162,8 +155,7 @@
 .privacy-sections section {
   padding: 42px 0;
 
-  border-bottom:
-    1px solid rgba(11, 42, 63, 0.1);
+  border-bottom: 1px solid rgba(11, 42, 63, 0.1);
 }
 
 .privacy-sections section:last-child {

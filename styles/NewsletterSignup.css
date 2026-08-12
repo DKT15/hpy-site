@@ -71,8 +71,7 @@
 
   border-color: #c9a228;
 
-  box-shadow:
-    inset 0 0 0 2px rgba(201, 162, 40, 0.22);
+  box-shadow: inset 0 0 0 2px rgba(201, 162, 40, 0.22);
 }
 
 /* ---------- Submit button ---------- */
