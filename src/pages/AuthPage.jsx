@@ -4,10 +4,12 @@ import { supabase } from "../lib/supabase";
 
 export default function AuthPage() {
   const [session, setSession] = useState(null);
-  const [mode, setMode] = useState("signup");
+  const [mode, setMode] = useState("login");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,8 +20,8 @@ export default function AuthPage() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      setSession(currentSession);
     });
 
     return () => {
@@ -27,11 +29,35 @@ export default function AuthPage() {
     };
   }, []);
 
+  function changeMode(nextMode) {
+    setMode(nextMode);
+    setMessage("");
+    setPassword("");
+    setShowPassword(false);
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
 
     setLoading(true);
     setMessage("");
+
+    if (mode === "forgot") {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        setMessage(error.message);
+      } else {
+        setMessage(
+          "If an account exists for that email, a password reset link has been sent.",
+        );
+      }
+
+      setLoading(false);
+      return;
+    }
 
     if (mode === "signup") {
       const { data, error } = await supabase.auth.signUp({
@@ -49,15 +75,18 @@ export default function AuthPage() {
       } else {
         setMessage("Check your email to confirm your account.");
       }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
 
-      if (error) {
-        setMessage(error.message);
-      }
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setMessage(error.message);
     }
 
     setLoading(false);
@@ -71,6 +100,7 @@ export default function AuthPage() {
     return (
       <main>
         <h1>Account</h1>
+
         <p>Signed in as {session.user.email}</p>
 
         <p>
@@ -84,6 +114,43 @@ export default function AuthPage() {
     );
   }
 
+  if (mode === "forgot") {
+    return (
+      <main>
+        <h1>Reset your password</h1>
+
+        <p>
+          Enter your email address and we&apos;ll send you a link to choose a
+          new password.
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="reset-email">Email</label>
+
+            <input
+              id="reset-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </div>
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Sending..." : "Send reset link"}
+          </button>
+        </form>
+
+        {message && <p>{message}</p>}
+
+        <button type="button" onClick={() => changeMode("login")}>
+          Back to login
+        </button>
+      </main>
+    );
+  }
+
   return (
     <main>
       <h1>{mode === "signup" ? "Create account" : "Log in"}</h1>
@@ -91,6 +158,7 @@ export default function AuthPage() {
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="email">Email</label>
+
           <input
             id="email"
             type="email"
@@ -124,35 +192,7 @@ export default function AuthPage() {
         </div>
 
         {mode === "login" && (
-          <button
-            type="button"
-            onClick={async () => {
-              if (!email) {
-                setMessage("Enter your email address first.");
-                return;
-              }
-
-              setLoading(true);
-              setMessage("");
-
-              const { error } = await supabase.auth.resetPasswordForEmail(
-                email,
-                {
-                  redirectTo: `${window.location.origin}/reset-password`,
-                },
-              );
-
-              if (error) {
-                setMessage(error.message);
-              } else {
-                setMessage(
-                  "If an account exists for that email, a password reset link has been sent.",
-                );
-              }
-
-              setLoading(false);
-            }}
-          >
+          <button type="button" onClick={() => changeMode("forgot")}>
             Forgot password?
           </button>
         )}
@@ -170,14 +210,11 @@ export default function AuthPage() {
 
       <button
         type="button"
-        onClick={() => {
-          setMode(mode === "signup" ? "login" : "signup");
-          setMessage("");
-        }}
+        onClick={() => changeMode(mode === "signup" ? "login" : "signup")}
       >
         {mode === "signup"
           ? "Already have an account? Log in"
-          : "Need an account? Sign up"}
+          : "Need an account? Create one"}
       </button>
     </main>
   );
