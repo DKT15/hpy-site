@@ -123,6 +123,40 @@ export default function AuthPage() {
           </div>
         </div>
 
+        {mode === "login" && (
+          <button
+            type="button"
+            onClick={async () => {
+              if (!email) {
+                setMessage("Enter your email address first.");
+                return;
+              }
+
+              setLoading(true);
+              setMessage("");
+
+              const { error } = await supabase.auth.resetPasswordForEmail(
+                email,
+                {
+                  redirectTo: `${window.location.origin}/reset-password`,
+                },
+              );
+
+              if (error) {
+                setMessage(error.message);
+              } else {
+                setMessage(
+                  "If an account exists for that email, a password reset link has been sent.",
+                );
+              }
+
+              setLoading(false);
+            }}
+          >
+            Forgot password?
+          </button>
+        )}
+
         <button type="submit" disabled={loading}>
           {loading
             ? "Please wait..."
