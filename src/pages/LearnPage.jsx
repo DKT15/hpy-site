@@ -73,7 +73,7 @@ function LearnPage() {
                     <strong>{lesson.name}</strong>
                   </Link>
                   <p>{lesson.description}</p>
-                  <p>{lesson.xp_reward} XP</p>
+                  <p>Up to {lesson.xp_reward} mastery XP + first-try bonus</p>
                 </div>
               ))}
             </div>
