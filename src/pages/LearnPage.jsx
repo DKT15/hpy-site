@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { Link } from "react-router-dom";
 
 function LearnPage() {
   const [topics, setTopics] = useState([]);
@@ -22,6 +23,7 @@ function LearnPage() {
             lessons (
               id,
               name,
+              slug,
               description,
               xp_reward
             )
@@ -67,7 +69,9 @@ function LearnPage() {
 
               {course.lessons.map((lesson) => (
                 <div key={lesson.id}>
-                  <strong>{lesson.name}</strong>
+                  <Link to={`/lesson/${lesson.slug}`}>
+                    <strong>{lesson.name}</strong>
+                  </Link>
                   <p>{lesson.description}</p>
                   <p>{lesson.xp_reward} XP</p>
                 </div>

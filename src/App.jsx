@@ -4,6 +4,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import LearnPage from "./pages/LearnPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import QuizPage from "./pages/QuizPage";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/learn" element={<LearnPage />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/lesson/:lessonSlug" element={<QuizPage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
       </Routes>
     </BrowserRouter>
