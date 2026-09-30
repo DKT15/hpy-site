@@ -7,6 +7,7 @@ import LearnPage from "./pages/LearnPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import QuizPage from "./pages/QuizPage";
+import DailyPage from "./pages/DailyPage";
 
 function App() {
   useEffect(() => {
@@ -44,6 +45,7 @@ function App() {
         <Route path="/login" element={<AuthPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/lesson/:lessonSlug" element={<QuizPage />} />
+        <Route path="/daily" element={<DailyPage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
       </Routes>
     </BrowserRouter>
