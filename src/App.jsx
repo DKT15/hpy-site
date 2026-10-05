@@ -1,15 +1,21 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useEffect } from "react";
-import { supabase } from "./lib/supabase";
+import { Routes, Route } from "react-router-dom";
+
+import AppLayout from "./components/AppLayout";
+
 import LandingPage from "./pages/LandingPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
-import LearnPage from "./pages/LearnPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+
+import LearnPage from "./pages/LearnPage";
 import QuizPage from "./pages/QuizPage";
 import DailyPage from "./pages/DailyPage";
+import ProfilePage from "./pages/ProfilePage";
 
-function App() {
+import { supabase } from "./lib/supabase";
+
+export default function App() {
   useEffect(() => {
     async function syncTimezone() {
       const {
@@ -37,19 +43,20 @@ function App() {
 
     syncTimezone();
   }, []);
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<AuthPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+
+      <Route element={<AppLayout />}>
         <Route path="/learn" element={<LearnPage />} />
-        <Route path="/login" element={<AuthPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/lesson/:lessonSlug" element={<QuizPage />} />
         <Route path="/daily" element={<DailyPage />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-      </Routes>
-    </BrowserRouter>
+        <Route path="/profile" element={<ProfilePage />} />
+      </Route>
+    </Routes>
   );
 }
-
-export default App;
