@@ -39,6 +39,12 @@ export default function App() {
       if (error) {
         console.error("Could not update timezone:", error);
       }
+
+      const { error: streakError } = await supabase.rpc("refresh_user_streak");
+
+      if (streakError) {
+        console.error("Could not refresh streak:", streakError);
+      }
     }
 
     syncTimezone();
