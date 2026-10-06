@@ -4,6 +4,7 @@ import { BookOpen, CircleHelp, Landmark } from "lucide-react";
 import { siTiktok, siYoutube } from "simple-icons";
 
 import NewsletterSignup from "../components/NewsletterSignup";
+import LandingHeader from "../components/LandingHeader";
 
 const benefits = [
   {
@@ -57,19 +58,7 @@ export default function LandingPage() {
   return (
     <>
       <div className="site">
-        <header className="site-header">
-          <div className="container header-inner">
-            <a className="brand" href="/" aria-label="Histopository home">
-              <img
-                src="/histopository-logo.png"
-                alt="Histopository logo"
-                className="brand-logo"
-              />
-
-              <span className="brand-name">HISTOPOSITORY</span>
-            </a>
-          </div>
-        </header>
+        <LandingHeader />
 
         <main id="main-content">
           {/* HERO */}
