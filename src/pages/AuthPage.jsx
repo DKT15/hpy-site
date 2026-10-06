@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import "../../styles/AuthPage.css";
 
 export default function AuthPage() {
-  const [session, setSession] = useState(null);
   const [mode, setMode] = useState("login");
+  const [session, setSession] = useState(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,8 +34,8 @@ export default function AuthPage() {
   function changeMode(nextMode) {
     setMode(nextMode);
     setMessage("");
+    setError("");
     setPassword("");
-    setShowPassword(false);
   }
 
   async function handleSubmit(event) {
@@ -41,18 +43,20 @@ export default function AuthPage() {
 
     setLoading(true);
     setMessage("");
+    setError("");
 
     if (mode === "forgot") {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email.trim(),
+        {
+          redirectTo: `${window.location.origin}/reset-password`,
+        },
+      );
 
       if (error) {
-        setMessage(error.message);
+        setError(error.message);
       } else {
-        setMessage(
-          "If an account exists for that email, a password reset link has been sent.",
-        );
+        setMessage("Password reset email sent. Check your inbox.");
       }
 
       setLoading(false);
@@ -61,19 +65,21 @@ export default function AuthPage() {
 
     if (mode === "signup") {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/login`,
+          emailRedirectTo: `${window.location.origin}/learn`,
         },
       });
 
       if (error) {
-        setMessage(error.message);
+        setError(error.message);
       } else if (data.session) {
-        setMessage("Account created and signed in.");
+        setMessage("Account created.");
       } else {
-        setMessage("Check your email to confirm your account.");
+        setMessage(
+          "Account created. Check your email to confirm your account.",
+        );
       }
 
       setLoading(false);
@@ -81,141 +87,190 @@ export default function AuthPage() {
     }
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim(),
       password,
     });
 
     if (error) {
-      setMessage(error.message);
+      setError(error.message);
+    } else {
+      window.location.href = "/learn";
     }
 
     setLoading(false);
   }
 
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-  }
-
   if (session) {
     return (
-      <main>
-        <h1>Account</h1>
+      <main className="auth-page">
+        <section className="auth-card auth-signed-in">
+          <Link to="/" className="auth-brand">
+            <img src="/histopository-logo.png" alt="" />
+            <span>Histopository</span>
+          </Link>
 
-        <p>Signed in as {session.user.email}</p>
+          <div className="auth-success-icon">✓</div>
 
-        <p>
-          <Link to="/learn">Go to Learn</Link>
-        </p>
+          <h1>You&apos;re signed in</h1>
 
-        <button type="button" onClick={handleSignOut}>
-          Sign out
-        </button>
-      </main>
-    );
-  }
+          <p>
+            Continue learning, take today&apos;s challenge or view your
+            progress.
+          </p>
 
-  if (mode === "forgot") {
-    return (
-      <main>
-        <h1>Reset your password</h1>
+          <div className="auth-signed-actions">
+            <Link to="/learn" className="auth-primary-link">
+              Continue learning
+            </Link>
 
-        <p>
-          Enter your email address and we&apos;ll send you a link to choose a
-          new password.
-        </p>
-
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="reset-email">Email</label>
-
-            <input
-              id="reset-email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
+            <Link to="/profile" className="auth-secondary-link">
+              View profile
+            </Link>
           </div>
-
-          <button type="submit" disabled={loading}>
-            {loading ? "Sending..." : "Send reset link"}
-          </button>
-        </form>
-
-        {message && <p>{message}</p>}
-
-        <button type="button" onClick={() => changeMode("login")}>
-          Back to login
-        </button>
+        </section>
       </main>
     );
   }
+
+  const isForgot = mode === "forgot";
+  const isSignup = mode === "signup";
 
   return (
-    <main>
-      <h1>{mode === "signup" ? "Create account" : "Log in"}</h1>
+    <main className="auth-page">
+      <section className="auth-card">
+        <Link to="/" className="auth-brand">
+          <img src="/histopository-logo.png" alt="" />
+          <span>Histopository</span>
+        </Link>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email">Email</label>
+        <div className="auth-heading">
+          <p className="auth-kicker">
+            {isForgot
+              ? "ACCOUNT RECOVERY"
+              : isSignup
+                ? "JOIN HISTOPOSITORY"
+                : "WELCOME BACK"}
+          </p>
+
+          <h1>
+            {isForgot
+              ? "Reset your password"
+              : isSignup
+                ? "Create your account"
+                : "Log in"}
+          </h1>
+
+          <p>
+            {isForgot
+              ? "Enter your email and we’ll send you a password reset link."
+              : isSignup
+                ? "Save your progress, earn XP and build your history streak."
+                : "Continue your learning journey."}
+          </p>
+        </div>
+
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <label htmlFor="auth-email">Email address</label>
 
           <input
-            id="email"
+            id="auth-email"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
             required
           />
-        </div>
 
-        <div>
-          <label htmlFor="password">Password</label>
+          {!isForgot && (
+            <>
+              <label htmlFor="auth-password">Password</label>
 
-          <div>
-            <input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              minLength={8}
-              required
-            />
+              <div className="auth-password-field">
+                <input
+                  id="auth-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete={isSignup ? "new-password" : "current-password"}
+                  minLength={6}
+                  required
+                />
 
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </>
+          )}
+
+          {mode === "login" && (
             <button
               type="button"
-              onClick={() => setShowPassword((current) => !current)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="auth-text-button auth-forgot"
+              onClick={() => changeMode("forgot")}
             >
-              {showPassword ? "Hide" : "Show"}
+              Forgot password?
             </button>
-          </div>
+          )}
+
+          {error && <p className="auth-message error">{error}</p>}
+
+          {message && <p className="auth-message success">{message}</p>}
+
+          <button type="submit" className="auth-submit" disabled={loading}>
+            {loading
+              ? "Please wait..."
+              : isForgot
+                ? "Send reset link"
+                : isSignup
+                  ? "Create account"
+                  : "Log in"}
+          </button>
+        </form>
+
+        <div className="auth-switch">
+          {isForgot ? (
+            <button
+              type="button"
+              className="auth-text-button"
+              onClick={() => changeMode("login")}
+            >
+              ← Back to login
+            </button>
+          ) : isSignup ? (
+            <>
+              <span>Already have an account?</span>
+
+              <button
+                type="button"
+                className="auth-text-button"
+                onClick={() => changeMode("login")}
+              >
+                Log in
+              </button>
+            </>
+          ) : (
+            <>
+              <span>New to Histopository?</span>
+
+              <button
+                type="button"
+                className="auth-text-button"
+                onClick={() => changeMode("signup")}
+              >
+                Create an account
+              </button>
+            </>
+          )}
         </div>
 
-        {mode === "login" && (
-          <button type="button" onClick={() => changeMode("forgot")}>
-            Forgot password?
-          </button>
-        )}
-
-        <button type="submit" disabled={loading}>
-          {loading
-            ? "Please wait..."
-            : mode === "signup"
-              ? "Create account"
-              : "Log in"}
-        </button>
-      </form>
-
-      {message && <p>{message}</p>}
-
-      <button
-        type="button"
-        onClick={() => changeMode(mode === "signup" ? "login" : "signup")}
-      >
-        {mode === "signup"
-          ? "Already have an account? Log in"
-          : "Need an account? Create one"}
-      </button>
+        <Link to="/learn" className="auth-guest-link">
+          Continue as guest →
+        </Link>
+      </section>
     </main>
   );
 }

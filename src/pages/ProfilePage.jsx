@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import AppLoading from "../components/AppLoading";
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -180,7 +181,7 @@ export default function ProfilePage() {
   }
 
   if (loading) {
-    return <p>Loading profile...</p>;
+    return <AppLoading message="Loading your progress..." />;
   }
 
   if (!user) {

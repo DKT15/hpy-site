@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import "/styles/DailyPage.css";
+import AppLoading from "../components/AppLoading";
 
 function getLocalDateString() {
   const now = new Date();
@@ -157,11 +158,7 @@ export default function DailyPage() {
   }
 
   if (loading) {
-    return (
-      <main className="daily-page">
-        <p>Loading today’s challenge...</p>
-      </main>
-    );
+    return <AppLoading message="Finding today’s challenge..." />;
   }
 
   if (error && !challenge) {

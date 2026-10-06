@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import "/styles/LearnPage.css";
+import AppLoading from "../components/AppLoading";
 
 function getLocalDateString() {
   const now = new Date();
@@ -154,11 +155,7 @@ export default function LearnPage() {
   }, []);
 
   if (loading) {
-    return (
-      <main className="learn-page">
-        <p>Loading Histopository...</p>
-      </main>
-    );
+    return <AppLoading message="Preparing your learning dashboard..." />;
   }
 
   if (error) {

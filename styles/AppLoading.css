@@ -1,0 +1,47 @@
+.app-loading {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  color: #061f31;
+}
+
+.app-loading-logo {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.app-loading-spinner {
+  width: 34px;
+  height: 34px;
+  box-sizing: border-box;
+  border: 3px solid rgba(6, 31, 49, 0.12);
+  border-top-color: #c9a228;
+  border-radius: 50%;
+  animation: histopository-spin 0.8s linear infinite;
+}
+
+.app-loading p {
+  margin: 0;
+  color: #737c81;
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+@keyframes histopository-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-loading-spinner {
+    animation: none;
+    border-color: #c9a228;
+  }
+}
