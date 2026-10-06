@@ -31,7 +31,7 @@ export default function AppLayout() {
       return;
     }
 
-    navigate("/");
+    navigate("/learn");
   }
 
   return (
