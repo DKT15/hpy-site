@@ -3,11 +3,22 @@ import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import "/styles/LearnPage.css";
 
+function getLocalDateString() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function LearnPage() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [topics, setTopics] = useState([]);
   const [progress, setProgress] = useState([]);
+  const [dailyChallenge, setDailyChallenge] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -22,6 +33,23 @@ export default function LearnPage() {
       } = await supabase.auth.getUser();
 
       setUser(user ?? null);
+
+      const today = getLocalDateString();
+
+      const { data: dailyData, error: dailyError } = await supabase.rpc(
+        "get_daily_challenge",
+        {
+          p_challenge_date: today,
+        },
+      );
+
+      if (dailyError) {
+        console.error("Could not load Daily Challenge:", dailyError);
+      } else {
+        const loadedDaily = Array.isArray(dailyData) ? dailyData[0] : dailyData;
+
+        setDailyChallenge(loadedDaily ?? null);
+      }
 
       const { data: topicsData, error: topicsError } = await supabase
         .from("topics")
@@ -247,21 +275,50 @@ export default function LearnPage() {
 
       <section className="learn-feature-grid">
         <article className="learn-feature-card daily-card">
-          <span className="feature-icon">◆</span>
+          <span className="feature-icon">
+            {dailyChallenge?.attempt ? "🔒" : "◆"}
+          </span>
 
           <div>
             <p className="learn-section-kicker">DAILY HISTORY</p>
-            <h2>Today&apos;s challenge</h2>
 
-            <p>
-              Five questions. One attempt. Come back each day to build your
-              streak.
-            </p>
+            <h2>
+              {dailyChallenge?.attempt
+                ? "Challenge completed"
+                : "Today's challenge"}
+            </h2>
+
+            {dailyChallenge?.attempt ? (
+              <p>
+                You scored {dailyChallenge.attempt.score}/
+                {dailyChallenge.attempt.total_questions} and earned{" "}
+                {dailyChallenge.attempt.xp_earned} XP. A new challenge will be
+                available tomorrow.
+              </p>
+            ) : dailyChallenge ? (
+              <p>
+                Five questions. One attempt. Come back each day to build your
+                streak.
+              </p>
+            ) : (
+              <p>There isn&apos;t a Daily Challenge available today.</p>
+            )}
           </div>
 
-          <Link to="/daily" className="learn-primary-button">
-            Play today
-          </Link>
+          {dailyChallenge?.attempt ? (
+            <span
+              className="learn-secondary-button daily-complete-button"
+              aria-label="Daily Challenge completed and locked until tomorrow"
+            >
+              🔒 Completed today
+            </span>
+          ) : dailyChallenge ? (
+            <Link to="/daily" className="learn-primary-button">
+              Play today
+            </Link>
+          ) : (
+            <span className="daily-unavailable">No challenge today</span>
+          )}
         </article>
 
         <article className="learn-feature-card">

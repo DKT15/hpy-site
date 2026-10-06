@@ -77,6 +77,21 @@
   padding: 40px 0 80px;
 }
 
+.app-logout-button {
+  padding: 0;
+  color: rgba(255, 255, 255, 0.65);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.app-logout-button:hover {
+  color: #f1e6c9;
+}
+
 .mobile-nav {
   display: none;
 }

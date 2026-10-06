@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, Link } from "react-router-dom";
+import { NavLink, Outlet, Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import "/styles/AppLayout.css";
 
 export default function AppLayout() {
   const [session, setSession] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -21,6 +22,17 @@ export default function AppLayout() {
       subscription.unsubscribe();
     };
   }, []);
+
+  async function handleLogout() {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Could not log out:", error);
+      return;
+    }
+
+    navigate("/");
+  }
 
   return (
     <div className="app-shell">
@@ -51,14 +63,24 @@ export default function AppLayout() {
           </NavLink>
 
           {session ? (
-            <NavLink
-              to="/profile"
-              className={({ isActive }) =>
-                isActive ? "app-nav-link active" : "app-nav-link"
-              }
-            >
-              Profile
-            </NavLink>
+            <>
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  isActive ? "app-nav-link active" : "app-nav-link"
+                }
+              >
+                Profile
+              </NavLink>
+
+              <button
+                type="button"
+                className="app-logout-button"
+                onClick={handleLogout}
+              >
+                Log out
+              </button>
+            </>
           ) : (
             <Link to="/login" className="app-login-link">
               Log in

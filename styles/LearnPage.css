@@ -304,6 +304,19 @@
   font-weight: 800;
 }
 
+.daily-complete-button {
+  cursor: default;
+  opacity: 0.75;
+  user-select: none;
+}
+
+.daily-unavailable {
+  margin-top: auto;
+  color: #737c81;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .learn-feature-grid,
   .course-grid {
