@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import AppLoading from "../components/AppLoading";
+import "../../styles/ProfilePage.css";
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [progress, setProgress] = useState([]);
@@ -17,6 +20,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -180,18 +184,38 @@ export default function ProfilePage() {
     setUploadingAvatar(false);
   }
 
+  async function handleLogout() {
+    setLoggingOut(true);
+
+    const { error } = await supabase.auth.signOut({
+      scope: "local",
+    });
+
+    if (error) {
+      console.error("Could not log out:", error);
+      setLoggingOut(false);
+      return;
+    }
+
+    navigate("/learn");
+  }
+
   if (loading) {
     return <AppLoading message="Loading your progress..." />;
   }
 
   if (!user) {
     return (
-      <main>
-        <h1>Your profile</h1>
+      <main className="profile-page">
+        <section className="profile-login-card">
+          <h1>Your profile</h1>
 
-        <p>Log in to view your progress, XP and streaks.</p>
+          <p>Log in to save progress, earn XP and build your history streak.</p>
 
-        <Link to="/login">Log in or create an account</Link>
+          <Link to="/login" className="profile-primary-button">
+            Log in or create an account
+          </Link>
+        </section>
       </main>
     );
   }
@@ -200,106 +224,192 @@ export default function ProfilePage() {
     (item) => item.status === "completed",
   ).length;
 
+  const displayTitle = profile?.display_name || "Historian";
+
   return (
-    <main>
-      <h1>
-        {profile?.display_name
-          ? `${profile.display_name}'s profile`
-          : "Your profile"}
-      </h1>
+    <main className="profile-page">
+      <section className="profile-hero">
+        <div className="profile-avatar">
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt={`${displayTitle}'s profile`} />
+          ) : (
+            <span>{displayTitle.charAt(0).toUpperCase()}</span>
+          )}
+        </div>
 
-      {profile?.avatar_url && (
-        <img
-          src={profile.avatar_url}
-          alt="Profile avatar"
-          width="96"
-          height="96"
-        />
-      )}
+        <div className="profile-hero-copy">
+          <p className="profile-kicker">YOUR HISTOPOSITORY</p>
 
-      <p>{user.email}</p>
+          <h1>{displayTitle}</h1>
 
-      <section>
-        <h2>Your stats</h2>
-
-        <p>Total XP: {profile?.total_xp ?? 0}</p>
-
-        <p>Current streak: {profile?.current_streak ?? 0} days</p>
-
-        <p>Longest streak: {profile?.longest_streak ?? 0} days</p>
-
-        <p>Lessons completed: {completedLessons}</p>
+          <p>{user.email}</p>
+        </div>
       </section>
 
-      <section>
-        <h2>Profile</h2>
+      <section className="profile-stats">
+        <div>
+          <strong>{profile?.total_xp ?? 0}</strong>
+          <span>Total XP</span>
+        </div>
 
-        <form onSubmit={handleSaveName}>
-          <label htmlFor="display-name">Display name</label>
+        <div>
+          <strong>{profile?.current_streak ?? 0}</strong>
+          <span>Current streak</span>
+        </div>
 
-          <input
-            id="display-name"
-            type="text"
-            value={displayName}
-            onChange={(event) => setDisplayName(event.target.value)}
-            minLength={2}
-            maxLength={40}
-            required
-          />
+        <div>
+          <strong>{profile?.longest_streak ?? 0}</strong>
+          <span>Longest streak</span>
+        </div>
 
-          <button type="submit" disabled={saving}>
-            {saving ? "Saving..." : "Save name"}
-          </button>
-        </form>
-
-        {message && <p>{message}</p>}
+        <div>
+          <strong>{completedLessons}</strong>
+          <span>Lessons completed</span>
+        </div>
       </section>
 
-      <section>
-        <h2>Profile picture</h2>
+      <div className="profile-grid">
+        <section className="profile-card">
+          <p className="profile-kicker">PROFILE DETAILS</p>
 
-        <form onSubmit={handleAvatarUpload}>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={(event) => setAvatarFile(event.target.files?.[0] ?? null)}
-          />
+          <h2>Edit profile</h2>
 
-          <button type="submit" disabled={!avatarFile || uploadingAvatar}>
-            {uploadingAvatar ? "Uploading..." : "Upload picture"}
-          </button>
-        </form>
+          <form className="profile-form" onSubmit={handleSaveName}>
+            <label htmlFor="display-name">Display name</label>
 
-        {avatarMessage && <p>{avatarMessage}</p>}
-      </section>
+            <input
+              id="display-name"
+              type="text"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              minLength={2}
+              maxLength={40}
+              required
+            />
 
-      <section>
-        <h2>Lesson progress</h2>
+            <button
+              type="submit"
+              className="profile-primary-button"
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "Save name"}
+            </button>
+          </form>
+
+          {message && <p className="profile-message">{message}</p>}
+        </section>
+
+        <section className="profile-card">
+          <p className="profile-kicker">PROFILE PICTURE</p>
+
+          <h2>Change avatar</h2>
+
+          <p className="profile-card-copy">
+            Upload a JPG, PNG or WebP image up to 2 MB.
+          </p>
+
+          <form className="profile-form" onSubmit={handleAvatarUpload}>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(event) =>
+                setAvatarFile(event.target.files?.[0] ?? null)
+              }
+            />
+
+            <button
+              type="submit"
+              className="profile-secondary-button"
+              disabled={!avatarFile || uploadingAvatar}
+            >
+              {uploadingAvatar ? "Uploading..." : "Upload picture"}
+            </button>
+          </form>
+
+          {avatarMessage && <p className="profile-message">{avatarMessage}</p>}
+        </section>
+      </div>
+
+      <section className="profile-progress-section">
+        <div className="profile-section-heading">
+          <div>
+            <p className="profile-kicker">LEARNING HISTORY</p>
+
+            <h2>Lesson progress</h2>
+          </div>
+
+          <Link to="/learn">Continue learning →</Link>
+        </div>
 
         {progress.length === 0 ? (
-          <p>You haven&apos;t completed any lessons yet.</p>
+          <div className="profile-empty">
+            <h3>Your journey starts here</h3>
+
+            <p>
+              Complete your first lesson and your progress will appear here.
+            </p>
+
+            <Link to="/learn" className="profile-primary-button">
+              Start learning
+            </Link>
+          </div>
         ) : (
-          progress.map((item) => (
-            <div key={item.lessons.slug}>
-              <h3>{item.lessons.name}</h3>
+          <div className="profile-progress-list">
+            {progress.map((item) => {
+              if (!item.lessons) {
+                return null;
+              }
 
-              <p>{item.lessons.courses.name}</p>
+              return (
+                <article
+                  className="profile-progress-card"
+                  key={item.lessons.slug}
+                >
+                  <div>
+                    <span>
+                      {item.lessons.courses?.name ?? "History course"}
+                    </span>
 
-              <p>
-                Best score: {item.best_score}/{item.best_total}
-              </p>
+                    <h3>{item.lessons.name}</h3>
 
-              <p>Attempts: {item.attempt_count}</p>
+                    <p>
+                      Best score: {item.best_score}/{item.best_total}
+                    </p>
+                  </div>
 
-              <Link to={`/lesson/${item.lessons.slug}`}>Play again</Link>
-            </div>
-          ))
+                  <div className="profile-progress-meta">
+                    <span>
+                      {item.attempt_count}{" "}
+                      {item.attempt_count === 1 ? "attempt" : "attempts"}
+                    </span>
+
+                    <Link to={`/lesson/${item.lessons.slug}`}>
+                      Practice again →
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         )}
       </section>
 
-      <p>
-        <Link to="/learn">Continue learning</Link>
-      </p>
+      <section className="profile-account">
+        <div>
+          <h2>Account</h2>
+
+          <p>Sign out of Histopository on this device.</p>
+        </div>
+
+        <button
+          type="button"
+          className="profile-logout-button"
+          onClick={handleLogout}
+          disabled={loggingOut}
+        >
+          {loggingOut ? "Logging out..." : "Log out"}
+        </button>
+      </section>
     </main>
   );
 }

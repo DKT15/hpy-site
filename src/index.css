@@ -12,15 +12,39 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 
   color-scheme: light;
+
+  /* Histopository brand colours */
+  --color-navy: #061f31;
+  --color-navy-light: #0c394b;
+  --color-cream: #f1e6c9;
+  --color-background: #f6f1e5;
+  --color-gold: #c9a228;
+  --color-gold-light: #e6b83f;
+  --color-teal: #1f5a5f;
+  --color-grey: #737c81;
+  --color-white: #fffdf8;
+
+  /* Feedback colours */
+  --color-success: #3b7d55;
+  --color-error: #a85045;
 }
+
+/* --------------------------------
+   Global box sizing
+-------------------------------- */
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
+
+/* --------------------------------
+   Document
+-------------------------------- */
 
 html {
   margin: 0;
@@ -33,13 +57,21 @@ body {
   margin: 0;
   width: 100%;
   min-height: 100vh;
+
   background: #061f31;
+
+  line-height: 1.5;
 }
 
 #root {
   width: 100%;
+  min-width: 0;
   min-height: 100vh;
 }
+
+/* --------------------------------
+   Typography
+-------------------------------- */
 
 body,
 button,
@@ -59,27 +91,23 @@ p {
   margin-top: 0;
 }
 
+p {
+  overflow-wrap: break-word;
+}
+
+/* --------------------------------
+   Forms
+-------------------------------- */
+
 button,
 input,
 textarea,
 select {
-  color: inherit;
-}
-
-img,
-picture,
-svg,
-canvas {
-  display: block;
   max-width: 100%;
-}
+  min-width: 0;
 
-img {
-  height: auto;
-}
-
-a {
   color: inherit;
+  font-size: 100%;
 }
 
 button,
@@ -91,17 +119,84 @@ button {
   border: 0;
 }
 
-input,
-button,
-textarea,
-select {
-  font-size: 100%;
+textarea {
+  resize: vertical;
 }
 
-/* Accessibility */
+/* Prevent buttons from looking clickable
+   when they are disabled */
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* --------------------------------
+   Images / media
+-------------------------------- */
+
+img,
+picture,
+svg,
+canvas,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+/* --------------------------------
+   Links
+-------------------------------- */
+
+a {
+  color: inherit;
+}
+
+/* --------------------------------
+   Responsive safety
+-------------------------------- */
+
+/*
+  Flex/grid children can otherwise refuse
+  to shrink below their content width.
+*/
+main,
+section,
+article,
+header,
+footer,
+nav,
+div {
+  min-width: 0;
+}
+
+/*
+  Long strings such as emails or URLs
+  shouldn't force a page wider than the viewport.
+*/
+p,
+span,
+a,
+label,
+strong,
+small {
+  overflow-wrap: anywhere;
+}
+
+/* --------------------------------
+   Accessibility
+-------------------------------- */
 
 :focus:not(:focus-visible) {
   outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid #c9a228;
+  outline-offset: 3px;
 }
 
 ::selection {
@@ -109,7 +204,9 @@ select {
   color: #061f31;
 }
 
-/* Reduced motion */
+/* --------------------------------
+   Reduced motion
+-------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
   *,
