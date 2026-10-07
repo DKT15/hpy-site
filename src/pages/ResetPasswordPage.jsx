@@ -1,50 +1,66 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import "../../styles/AuthPage.css";
+import "../../styles/AppLoading.css";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  const [canReset, setCanReset] = useState(false);
+  const [expired, setExpired] = useState(false);
+  const [loadingSession, setLoadingSession] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const params = new URLSearchParams(window.location.hash.replace("#", ""));
 
-    const errorCode = hashParams.get("error_code");
+    const errorCode = params.get("error_code");
+    const errorDescription = params.get("error_description");
 
     if (errorCode === "otp_expired") {
-      setMessage(
-        "This password reset link has expired or has already been used. Please request a new one.",
+      setExpired(true);
+      setError(
+        errorDescription
+          ? decodeURIComponent(errorDescription.replace(/\+/g, " "))
+          : "This password reset link has expired.",
       );
+      setLoadingSession(false);
       return;
     }
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (
-        session &&
-        (event === "PASSWORD_RECOVERY" ||
-          event === "INITIAL_SESSION" ||
-          event === "SIGNED_IN")
-      ) {
-        setReady(true);
-      }
-    });
-
-    async function checkSession() {
+    async function checkRecoverySession() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (session) {
-        setReady(true);
+        setCanReset(true);
       }
+
+      setLoadingSession(false);
     }
 
-    checkSession();
+    checkRecoverySession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (
+        event === "PASSWORD_RECOVERY" ||
+        event === "SIGNED_IN" ||
+        event === "INITIAL_SESSION"
+      ) {
+        if (session) {
+          setCanReset(true);
+          setExpired(false);
+        }
+      }
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -54,82 +70,162 @@ export default function ResetPasswordPage() {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    setLoading(true);
-    setMessage("");
+    setSaving(true);
+    setError("");
 
     const { error } = await supabase.auth.updateUser({
       password,
     });
 
     if (error) {
-      setMessage(error.message);
-    } else {
-      setMessage("Password updated successfully.");
-      setPassword("");
+      setError(error.message);
+      setSaving(false);
+      return;
     }
 
-    setLoading(false);
+    setSuccess(true);
+    setPassword("");
+    setSaving(false);
   }
 
-  if (!ready) {
+  if (loadingSession) {
     return (
-      <main>
-        <h1>Reset password</h1>
+      <main className="auth-page">
+        <section className="auth-card auth-signed-in">
+          <Link to="/" className="auth-brand">
+            <img src="/histopository-logo.png" alt="" />
+            <span>Histopository</span>
+          </Link>
 
-        {message ? (
-          <>
-            <p>{message}</p>
-            <Link to="/login">Return to login</Link>
-          </>
-        ) : (
-          <p>Validating your password reset link...</p>
-        )}
+          <div className="app-loading-spinner" />
+
+          <h1>Checking your reset link</h1>
+
+          <p>Please wait a moment.</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (expired || !canReset) {
+    return (
+      <main className="auth-page">
+        <section className="auth-card auth-signed-in">
+          <Link to="/" className="auth-brand">
+            <img src="/histopository-logo.png" alt="" />
+            <span>Histopository</span>
+          </Link>
+
+          <div className="auth-heading">
+            <p className="auth-kicker">RESET LINK</p>
+
+            <h1>
+              {expired ? "This link has expired" : "Reset link unavailable"}
+            </h1>
+
+            <p>
+              {expired
+                ? "Password reset links are temporary. Request a new one to continue."
+                : "We could not verify this password reset link."}
+            </p>
+          </div>
+
+          {error && <p className="auth-message error">{error}</p>}
+
+          <div className="auth-signed-actions">
+            <Link to="/login" className="auth-primary-link">
+              Request a new reset link
+            </Link>
+
+            <Link to="/learn" className="auth-secondary-link">
+              Continue as guest
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (success) {
+    return (
+      <main className="auth-page">
+        <section className="auth-card auth-signed-in">
+          <Link to="/" className="auth-brand">
+            <img src="/histopository-logo.png" alt="" />
+            <span>Histopository</span>
+          </Link>
+
+          <div className="auth-success-icon">✓</div>
+
+          <h1>Password updated</h1>
+
+          <p>Your new password has been saved successfully.</p>
+
+          <div className="auth-signed-actions">
+            <Link to="/learn" className="auth-primary-link">
+              Continue learning
+            </Link>
+
+            <Link to="/profile" className="auth-secondary-link">
+              View profile
+            </Link>
+          </div>
+        </section>
       </main>
     );
   }
 
   return (
-    <main>
-      <h1>Choose a new password</h1>
+    <main className="auth-page">
+      <section className="auth-card">
+        <Link to="/" className="auth-brand">
+          <img src="/histopository-logo.png" alt="" />
+          <span>Histopository</span>
+        </Link>
 
-      <form onSubmit={handleSubmit}>
-        <div>
+        <div className="auth-heading">
+          <p className="auth-kicker">ACCOUNT RECOVERY</p>
+
+          <h1>Choose a new password</h1>
+
+          <p>Enter a new password for your Histopository account.</p>
+        </div>
+
+        <form className="auth-form" onSubmit={handleSubmit}>
           <label htmlFor="new-password">New password</label>
 
-          <div>
+          <div className="auth-password-field">
             <input
               id="new-password"
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              minLength={8}
+              autoComplete="new-password"
+              minLength={6}
               required
             />
 
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
+
+          {error && <p className="auth-message error">{error}</p>}
+
+          <button type="submit" className="auth-submit" disabled={saving}>
+            {saving ? "Updating password..." : "Update password"}
+          </button>
+        </form>
+
+        <div className="auth-switch">
+          <Link to="/login" className="auth-text-button">
+            ← Back to login
+          </Link>
         </div>
-
-        <button type="submit" disabled={loading}>
-          {loading ? "Updating..." : "Update password"}
-        </button>
-      </form>
-
-      {message && (
-        <>
-          <p>{message}</p>
-
-          {message === "Password updated successfully." && (
-            <Link to="/login">Go to login</Link>
-          )}
-        </>
-      )}
+      </section>
     </main>
   );
 }
