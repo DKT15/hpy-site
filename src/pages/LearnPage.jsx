@@ -56,29 +56,29 @@ export default function LearnPage() {
         .from("topics")
         .select(
           `
-            id,
-            name,
-            slug,
-            description,
-            image_url,
-            sort_order,
-            courses (
               id,
               name,
               slug,
               description,
               image_url,
               sort_order,
-              lessons (
+              courses (
                 id,
                 name,
                 slug,
                 description,
-                xp_reward,
-                sort_order
+                image_url,
+                sort_order,
+                lessons (
+                  id,
+                  name,
+                  slug,
+                  description,
+                  xp_reward,
+                  sort_order
+                )
               )
-            )
-          `,
+            `,
         )
         .order("sort_order");
 
@@ -100,11 +100,11 @@ export default function LearnPage() {
             .from("profiles")
             .select(
               `
-              display_name,
-              total_xp,
-              current_streak,
-              longest_streak
-            `,
+                display_name,
+                total_xp,
+                current_streak,
+                longest_streak
+              `,
             )
             .eq("id", user.id)
             .single(),
@@ -113,26 +113,29 @@ export default function LearnPage() {
             .from("lesson_progress")
             .select(
               `
-              status,
-              best_score,
-              best_total,
-              attempt_count,
-              updated_at,
-              lessons (
-                id,
-                name,
-                slug,
-                course_id,
-                courses (
+                status,
+                best_score,
+                best_total,
+                attempt_count,
+                updated_at,
+                lessons (
                   id,
                   name,
-                  slug
+                  slug,
+                  course_id,
+                  courses (
+                    id,
+                    name,
+                    slug,
+                    image_url
+                  )
                 )
-              )
-            `,
+              `,
             )
             .eq("user_id", user.id)
-            .order("updated_at", { ascending: false }),
+            .order("updated_at", {
+              ascending: false,
+            }),
         ]);
 
         if (profileError) {
@@ -189,13 +192,19 @@ export default function LearnPage() {
 
   const continueLesson = recentProgress?.lessons ?? firstLesson ?? null;
 
-  const continueCourseName =
-    recentProgress?.lessons?.courses?.name ?? firstCourse?.name ?? "";
+  const continueCourse =
+    recentProgress?.lessons?.courses ?? firstCourse ?? null;
+
+  const continueCourseName = continueCourse?.name ?? "";
+
+  const continueCourseImage = continueCourse?.image_url ?? null;
 
   const displayName = profile?.display_name || "Historian";
 
   return (
     <main className="learn-page">
+      {/* WELCOME */}
+
       <section className="learn-welcome">
         <div>
           <p className="learn-eyebrow">
@@ -232,18 +241,31 @@ export default function LearnPage() {
         )}
       </section>
 
+      {/* CONTINUE LEARNING */}
+
       <section className="learn-section">
         <div className="learn-section-heading">
           <div>
             <p className="learn-section-kicker">KEEP GOING</p>
+
             <h2>Continue learning</h2>
           </div>
         </div>
 
         {continueLesson ? (
           <div className="continue-card">
-            <div className="continue-card-image">
-              <img src="/hero-art.webp" alt="" />
+            <div
+              className={`continue-card-image ${
+                continueCourseImage ? "has-image" : "no-image"
+              }`}
+            >
+              {continueCourseImage ? (
+                <img src={continueCourseImage} alt="" />
+              ) : (
+                <span aria-hidden="true">
+                  {continueCourseName?.charAt(0).toUpperCase() || "H"}
+                </span>
+              )}
             </div>
 
             <div className="continue-card-content">
@@ -269,6 +291,8 @@ export default function LearnPage() {
           <p>More learning content is coming soon.</p>
         )}
       </section>
+
+      {/* DASHBOARD FEATURE CARDS */}
 
       <section className="learn-feature-grid">
         <article className="learn-feature-card daily-card">
@@ -323,6 +347,7 @@ export default function LearnPage() {
 
           <div>
             <p className="learn-section-kicker">YOUR PROGRESS</p>
+
             <h2>{completedLessons} lessons completed</h2>
 
             <p>Track your scores, attempts, XP and learning history.</p>
@@ -344,6 +369,7 @@ export default function LearnPage() {
 
           <div>
             <p className="learn-section-kicker">MASTERY</p>
+
             <h2>
               {user
                 ? `${profile?.total_xp ?? 0} XP earned`
@@ -358,10 +384,13 @@ export default function LearnPage() {
         </article>
       </section>
 
+      {/* COURSES */}
+
       <section className="learn-section">
         <div className="learn-section-heading">
           <div>
             <p className="learn-section-kicker">EXPLORE</p>
+
             <h2>History topics</h2>
           </div>
         </div>
@@ -373,12 +402,16 @@ export default function LearnPage() {
             return (
               <article className="course-card" key={course.id}>
                 <div
-                  className={`course-card-image course-image-${(index % 4) + 1}`}
+                  className={`course-card-image course-image-${
+                    (index % 4) + 1
+                  } ${course.image_url ? "has-image" : "no-image"}`}
                 >
                   {course.image_url ? (
                     <img src={course.image_url} alt="" />
                   ) : (
-                    <span>{course.name.charAt(0)}</span>
+                    <span aria-hidden="true">
+                      {course.name.charAt(0).toUpperCase()}
+                    </span>
                   )}
                 </div>
 

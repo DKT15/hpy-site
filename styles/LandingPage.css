@@ -189,7 +189,7 @@
 .home-hero-visual > img {
   width: 100%;
 
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 4 / 3;
 
   display: block;
 
@@ -985,12 +985,9 @@
 @media (max-width: 760px) {
   .home-hero-inner {
     min-height: auto;
-
     padding: 56px 0 66px;
-
     grid-template-columns: 1fr;
-
-    gap: 46px;
+    gap: 0;
   }
 
   .home-hero-copy {
@@ -998,11 +995,7 @@
   }
 
   .home-hero-visual {
-    width: min(500px, calc(100% - 30px));
-
-    margin-inline: auto;
-
-    justify-self: center;
+    display: none;
   }
 
   .benefits-grid {
@@ -1039,8 +1032,7 @@
 
   .home-hero-inner {
     padding: 44px 0 52px;
-
-    gap: 34px;
+    gap: 0;
   }
 
   .home-hero h1 {
@@ -1063,7 +1055,7 @@
   }
 
   .home-hero-visual {
-    width: calc(100% - 20px);
+    display: none;
   }
 
   .home-hero-card {

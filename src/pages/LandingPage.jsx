@@ -70,8 +70,6 @@ export default function LandingPage() {
         <section className="home-hero" aria-labelledby="hero-heading">
           <div className="home-hero-inner">
             <div className="home-hero-copy">
-              <p className="home-eyebrow">HISTORY, MADE INTERACTIVE</p>
-
               <h1 id="hero-heading">
                 Learn history.
                 <br />
@@ -102,7 +100,7 @@ export default function LandingPage() {
 
             <div className="home-hero-visual">
               <img
-                src="/hero-art.webp"
+                src="/images/home/main-image.webp"
                 alt="Historical artwork representing the study of history"
               />
 
