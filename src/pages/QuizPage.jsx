@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import AppLoading from "../components/AppLoading";
 import "/styles/QuizPage.css";
+
+const PENDING_GUEST_ATTEMPT_KEY = "histopository_pending_guest_lesson_attempt";
 
 function formatSlug(slug = "") {
   return slug
@@ -10,25 +13,58 @@ function formatSlug(slug = "") {
     .join(" ");
 }
 
+function storeGuestAttempt({ lessonSlug, lessonName, answers }) {
+  try {
+    localStorage.setItem(
+      PENDING_GUEST_ATTEMPT_KEY,
+      JSON.stringify({
+        version: 1,
+        lesson_slug: lessonSlug,
+        lesson_name: lessonName,
+        answers,
+        saved_at: Date.now(),
+      }),
+    );
+
+    return true;
+  } catch (storageError) {
+    console.error("Could not store guest quiz attempt:", storageError);
+
+    return false;
+  }
+}
+
 export default function QuizPage() {
   const { lessonSlug } = useParams();
 
   const [lessonName, setLessonName] = useState("");
+
   const [lessonXp, setLessonXp] = useState(50);
+
   const [questions, setQuestions] = useState([]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
+
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+
   const [result, setResult] = useState(null);
+
   const [responses, setResponses] = useState([]);
+
   const [score, setScore] = useState(0);
 
   const [completion, setCompletion] = useState(null);
+
   const [finished, setFinished] = useState(false);
 
+  const [guestAttemptStored, setGuestAttemptStored] = useState(false);
+
   const [loading, setLoading] = useState(true);
+
   const [checking, setChecking] = useState(false);
+
   const [saving, setSaving] = useState(false);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -53,8 +89,11 @@ export default function QuizPage() {
 
       if (quizError) {
         console.error(quizError);
+
         setError("Could not load this lesson.");
+
         setLoading(false);
+
         return;
       }
 
@@ -91,8 +130,11 @@ export default function QuizPage() {
 
     if (error) {
       console.error(error);
+
       setError("Could not check your answer.");
+
       setChecking(false);
+
       return;
     }
 
@@ -123,9 +165,30 @@ export default function QuizPage() {
       data: { user },
     } = await supabase.auth.getUser();
 
+    /*
+      Guests do not write directly to the
+      progression tables.
+
+      Their submitted question/answer IDs are
+      stored temporarily in the browser instead.
+
+      If they then create an account or log in,
+      AuthPage will send these answers through
+      complete_lesson_quiz() after authentication.
+    */
+
     if (!user) {
+      const stored = storeGuestAttempt({
+        lessonSlug,
+        lessonName,
+        answers: responses,
+      });
+
+      setGuestAttemptStored(stored);
+
       setFinished(true);
       setSaving(false);
+
       return;
     }
 
@@ -136,8 +199,11 @@ export default function QuizPage() {
 
     if (error) {
       console.error(error);
+
       setError("Your quiz result could not be saved.");
+
       setSaving(false);
+
       return;
     }
 
@@ -151,20 +217,18 @@ export default function QuizPage() {
   async function handleNext() {
     if (currentIndex === questions.length - 1) {
       await finishQuiz();
+
       return;
     }
 
     setCurrentIndex((current) => current + 1);
+
     setSelectedAnswer(null);
     setResult(null);
   }
 
   if (loading) {
-    return (
-      <main className="quiz-page">
-        <p>Loading lesson...</p>
-      </main>
-    );
+    return <AppLoading message="Preparing your lesson..." />;
   }
 
   if (error && questions.length === 0) {
@@ -172,6 +236,7 @@ export default function QuizPage() {
       <main className="quiz-page">
         <div className="quiz-panel">
           <h1>Unable to load lesson</h1>
+
           <p>{error}</p>
 
           <Link to="/learn" className="quiz-primary-button">
@@ -187,6 +252,7 @@ export default function QuizPage() {
       <main className="quiz-page">
         <div className="quiz-panel">
           <h1>{lessonName}</h1>
+
           <p>No questions are available yet.</p>
 
           <Link to="/learn" className="quiz-primary-button">
@@ -224,6 +290,7 @@ export default function QuizPage() {
               <div className="quiz-reward-grid">
                 <div>
                   <strong>{completion.xp_earned ?? 0}</strong>
+
                   <span>XP earned</span>
                 </div>
 
@@ -231,6 +298,7 @@ export default function QuizPage() {
                   <strong>
                     {completion.best_score ?? finalScore}/{total}
                   </strong>
+
                   <span>Best score</span>
                 </div>
               </div>
@@ -250,16 +318,36 @@ export default function QuizPage() {
             </>
           ) : (
             <div className="quiz-guest-message">
-              <h2>Want to keep your progress?</h2>
+              {guestAttemptStored ? (
+                <>
+                  <h2>Save this result</h2>
 
-              <p>
-                Create a free account to save scores, earn XP and build your
-                streak.
-              </p>
+                  <p>
+                    Create a free account now and we&apos;ll save this lesson
+                    result, calculate your XP and start your progress.
+                  </p>
 
-              <Link to="/login" className="quiz-primary-button">
-                Create free account
-              </Link>
+                  <Link
+                    to="/login?mode=signup&saveProgress=1"
+                    className="quiz-primary-button"
+                  >
+                    Create account &amp; save result
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <h2>Want to keep your progress?</h2>
+
+                  <p>
+                    Create a free account to save future scores, earn XP and
+                    build your streak.
+                  </p>
+
+                  <Link to="/login?mode=signup" className="quiz-primary-button">
+                    Create free account
+                  </Link>
+                </>
+              )}
             </div>
           )}
 
@@ -295,7 +383,9 @@ export default function QuizPage() {
         <div className="quiz-progress-track">
           <div
             className="quiz-progress-fill"
-            style={{ width: `${progress}%` }}
+            style={{
+              width: `${progress}%`,
+            }}
           />
         </div>
 
