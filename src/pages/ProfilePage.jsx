@@ -338,7 +338,7 @@ export default function ProfilePage() {
             <h2>Lesson progress</h2>
           </div>
 
-          <Link to="/learn">Continue learning →</Link>
+          <Link to="/learn">Continue learning</Link>
         </div>
 
         {progress.length === 0 ? (
@@ -384,7 +384,7 @@ export default function ProfilePage() {
                     </span>
 
                     <Link to={`/lesson/${item.lessons.slug}`}>
-                      Practice again →
+                      Practice again
                     </Link>
                   </div>
                 </article>

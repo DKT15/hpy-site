@@ -1,37 +1,55 @@
 .daily-page {
   width: min(760px, 100%);
+
   margin: 0 auto;
+
   display: grid;
+
   gap: 22px;
 }
 
+/* =========================================================
+   HEADER
+   ========================================================= */
+
 .daily-header-card {
   padding: 26px 30px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 30px;
+
   color: #f1e6c9;
+
   background: linear-gradient(135deg, #061f31, #0d3b4c);
+
   border-radius: 18px;
 }
 
 .daily-header-card h1 {
   margin: 5px 0 6px;
+
   font-family: Georgia, serif;
+
   font-size: clamp(1.8rem, 4vw, 2.5rem);
 }
 
 .daily-header-card > div > p:last-child {
   margin: 0;
+
   color: rgba(241, 230, 201, 0.72);
 }
 
 .daily-kicker {
   margin: 0;
+
   color: #c9a228;
+
   font-size: 0.75rem;
   font-weight: 900;
+
   letter-spacing: 0.13em;
 }
 
@@ -41,106 +59,166 @@
 .daily-icon {
   width: 64px;
   height: 64px;
+
   flex: 0 0 auto;
+
   display: grid;
   place-items: center;
+
   background: #e6b83f;
+
   color: #061f31;
+
   border-radius: 50%;
+
   font-size: 1.55rem;
   font-weight: 900;
 }
 
+/* =========================================================
+   TOPBAR / PROGRESS
+   ========================================================= */
+
 .daily-topbar {
   display: grid;
+
   grid-template-columns: 40px 1fr auto;
+
   align-items: center;
+
   gap: 18px;
 }
 
 .daily-exit {
   width: 40px;
   height: 40px;
+
   display: grid;
   place-items: center;
+
   color: #737c81;
+
   text-decoration: none;
+
   font-size: 1.8rem;
+
   border-radius: 50%;
 }
 
 .daily-exit:hover {
   color: #061f31;
+
   background: rgba(6, 31, 49, 0.06);
 }
 
 .daily-progress-track {
   height: 10px;
+
   overflow: hidden;
+
   background: rgba(6, 31, 49, 0.1);
+
   border-radius: 999px;
 }
 
 .daily-progress-fill {
   height: 100%;
+
   background: #c9a228;
+
   border-radius: inherit;
+
   transition: width 0.3s ease;
 }
 
 .daily-question-count {
   color: #737c81;
+
   font-size: 0.85rem;
   font-weight: 800;
 }
 
+/* =========================================================
+   QUESTION PANEL
+   ========================================================= */
+
 .daily-panel,
 .daily-results {
   padding: clamp(24px, 5vw, 48px);
+
   background: #fffdf8;
+
   border: 1px solid rgba(6, 31, 49, 0.1);
+
   border-radius: 20px;
+
   box-shadow: 0 12px 38px rgba(6, 31, 49, 0.07);
 }
 
 .daily-question {
   margin: 0 0 30px;
+
   color: #061f31;
+
   font-family: Georgia, serif;
+
   font-size: clamp(1.65rem, 4vw, 2.3rem);
+
   line-height: 1.22;
 }
 
 .daily-question-image {
   width: 100%;
   max-height: 320px;
+
   margin-bottom: 28px;
+
   display: block;
+
   object-fit: cover;
+
   border-radius: 14px;
 }
 
+/* =========================================================
+   ANSWERS
+   ========================================================= */
+
 .daily-options {
   display: grid;
+
   gap: 12px;
 }
 
 .daily-option {
   width: 100%;
   min-height: 66px;
+
   padding: 12px 18px;
+
   display: grid;
+
   grid-template-columns: 40px 1fr auto;
+
   align-items: center;
+
   gap: 14px;
+
   text-align: left;
+
   color: #061f31;
+
   background: #fff;
+
   border: 2px solid rgba(6, 31, 49, 0.11);
+
   border-radius: 13px;
+
   cursor: pointer;
+
   font: inherit;
   font-weight: 650;
+
   transition:
     border-color 0.15s ease,
     background 0.15s ease,
@@ -149,36 +227,45 @@
 
 .daily-option:not(:disabled):hover {
   transform: translateY(-1px);
+
   border-color: rgba(31, 90, 95, 0.45);
 }
 
 .daily-option.selected {
   border-color: #1f5a5f;
+
   background: rgba(31, 90, 95, 0.06);
 }
 
 .daily-option.correct {
   border-color: #3b7d55;
+
   background: rgba(59, 125, 85, 0.09);
 }
 
 .daily-option.incorrect {
   border-color: #a85045;
+
   background: rgba(168, 80, 69, 0.08);
 }
 
 .daily-option:disabled {
   cursor: default;
+
   opacity: 1;
 }
 
 .daily-option-letter {
   width: 36px;
   height: 36px;
+
   display: grid;
   place-items: center;
+
   background: #f1e6c9;
+
   border-radius: 9px;
+
   font-weight: 900;
 }
 
@@ -195,76 +282,111 @@
   color: #a85045;
 }
 
+/* =========================================================
+   FEEDBACK
+   ========================================================= */
+
 .daily-feedback {
   margin-top: 24px;
+
   padding: 20px 22px;
+
   border-radius: 13px;
 }
 
 .daily-feedback.correct {
   background: rgba(59, 125, 85, 0.1);
+
   border: 1px solid rgba(59, 125, 85, 0.18);
 }
 
 .daily-feedback.incorrect {
   background: rgba(168, 80, 69, 0.09);
+
   border: 1px solid rgba(168, 80, 69, 0.16);
 }
 
 .daily-feedback h3 {
   margin: 0 0 5px;
+
   color: #061f31;
+
   font-family: Georgia, serif;
 }
 
 .daily-feedback p {
   margin: 0;
+
   color: #4f5c62;
+
   line-height: 1.6;
 }
 
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
 .daily-action-row {
   margin-top: 28px;
+
   display: flex;
+
   justify-content: flex-end;
 }
 
 .daily-primary-button,
 .daily-secondary-button {
   min-height: 48px;
+
   padding: 0 24px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 10px;
+
   text-decoration: none;
+
   font: inherit;
   font-weight: 850;
+
   cursor: pointer;
 }
 
 .daily-primary-button {
   color: #061f31;
+
   background: #e6b83f;
+
   border: 0;
+
   box-shadow: 0 6px 18px rgba(201, 162, 40, 0.18);
 }
 
 .daily-primary-button:disabled {
   cursor: not-allowed;
+
   opacity: 0.45;
 }
 
 .daily-secondary-button {
   color: #061f31;
+
   background: transparent;
+
   border: 1px solid rgba(6, 31, 49, 0.18);
 }
 
 .daily-error {
   margin-top: 18px;
+
   color: #a85045;
 }
+
+/* =========================================================
+   RESULTS
+   ========================================================= */
 
 .daily-results {
   text-align: center;
@@ -277,55 +399,79 @@
 
 .daily-results h1 {
   margin: 8px 0 22px;
+
   color: #061f31;
+
   font-family: Georgia, serif;
+
   font-size: clamp(2rem, 5vw, 3rem);
 }
 
 .daily-results-score {
   margin: 0;
+
   color: #061f31;
+
   font-family: Georgia, serif;
+
   font-size: 3.4rem;
   font-weight: 700;
 }
 
 .daily-results-percentage {
   margin: 4px 0 26px;
+
   color: #737c81;
 }
 
 .daily-reward-card {
   width: min(240px, 100%);
+
   margin: 0 auto 22px;
+
   padding: 20px;
+
   display: grid;
+
   gap: 5px;
+
   background: #f7f1df;
+
   border-radius: 14px;
 }
 
 .daily-reward-card strong {
   color: #061f31;
+
   font-family: Georgia, serif;
+
   font-size: 2rem;
 }
 
 .daily-reward-card span {
   color: #737c81;
+
   font-size: 0.82rem;
 }
+
+/* =========================================================
+   LOCKED / GUEST
+   ========================================================= */
 
 .daily-locked-message,
 .daily-guest-message {
   max-width: 510px;
+
   margin: 28px auto;
+
   padding: 24px;
+
   border-radius: 14px;
 }
 
 .daily-locked-message {
   background: rgba(6, 31, 49, 0.055);
+
   border: 1px solid rgba(6, 31, 49, 0.09);
 }
 
@@ -336,14 +482,18 @@
 .daily-locked-message h2,
 .daily-guest-message h2 {
   margin: 0 0 8px;
+
   color: #061f31;
+
   font-family: Georgia, serif;
 }
 
 .daily-locked-message p,
 .daily-guest-message p {
   margin: 0;
+
   color: #737c81;
+
   line-height: 1.6;
 }
 
@@ -353,11 +503,18 @@
 
 .daily-result-actions {
   margin-top: 30px;
+
   display: flex;
   justify-content: center;
+
   gap: 12px;
+
   flex-wrap: wrap;
 }
+
+/* =========================================================
+   EMPTY
+   ========================================================= */
 
 .daily-empty {
   text-align: center;
@@ -369,13 +526,19 @@
 
 .daily-empty h1 {
   color: #061f31;
+
   font-family: Georgia, serif;
 }
 
 .daily-empty > p:not(.daily-kicker) {
   color: #737c81;
+
   line-height: 1.6;
 }
+
+/* =========================================================
+   MOBILE / TABLET
+   ========================================================= */
 
 @media (max-width: 680px) {
   .daily-header-card {
@@ -394,12 +557,15 @@
   .daily-panel,
   .daily-results {
     padding: 24px 18px;
+
     border-radius: 16px;
   }
 
   .daily-option {
     padding: 11px 13px;
+
     grid-template-columns: 36px 1fr auto;
+
     gap: 10px;
   }
 
@@ -422,6 +588,248 @@
 
   .daily-result-actions a {
     width: 100%;
+
     box-sizing: border-box;
+  }
+}
+
+/* =========================================================
+   COMPACT PHONE EXPERIENCE
+   375PX AND BELOW
+   ========================================================= */
+
+@media (max-width: 375px) {
+  .daily-page {
+    gap: 14px;
+  }
+
+  /*
+    Keep the Daily introduction, but substantially reduce
+    its vertical footprint so the actual quiz appears sooner.
+  */
+
+  .daily-header-card {
+    padding: 13px 15px;
+
+    gap: 12px;
+
+    border-radius: 13px;
+  }
+
+  .daily-header-card h1 {
+    margin: 2px 0 0;
+
+    font-size: 1.35rem;
+    line-height: 1.08;
+  }
+
+  /*
+    The supporting sentence costs valuable vertical space
+    on very small phones. The title already communicates
+    what this page is.
+  */
+
+  .daily-header-card > div > p:last-child {
+    display: none;
+  }
+
+  .daily-kicker {
+    font-size: 0.64rem;
+
+    letter-spacing: 0.1em;
+  }
+
+  .daily-badge {
+    width: 40px;
+    height: 40px;
+
+    font-size: 1.05rem;
+  }
+
+  /*
+    Compact quiz progress.
+  */
+
+  .daily-topbar {
+    grid-template-columns: 34px 1fr auto;
+
+    gap: 8px;
+  }
+
+  .daily-exit {
+    width: 34px;
+    height: 34px;
+
+    font-size: 1.5rem;
+  }
+
+  .daily-progress-track {
+    height: 8px;
+  }
+
+  .daily-question-count {
+    font-size: 0.76rem;
+  }
+
+  /*
+    Compact question panel.
+  */
+
+  .daily-panel {
+    padding: 17px 14px;
+
+    border-radius: 14px;
+  }
+
+  .daily-question {
+    margin-bottom: 17px;
+
+    font-size: clamp(1.28rem, 6.8vw, 1.55rem);
+
+    line-height: 1.18;
+  }
+
+  .daily-question-image {
+    max-height: 180px;
+
+    margin-bottom: 18px;
+
+    border-radius: 10px;
+  }
+
+  /*
+    Slightly smaller answers while retaining comfortable
+    touch targets.
+  */
+
+  .daily-options {
+    gap: 8px;
+  }
+
+  .daily-option {
+    min-height: 52px;
+
+    padding: 8px 10px;
+
+    grid-template-columns: 30px 1fr auto;
+
+    gap: 8px;
+
+    border-radius: 10px;
+
+    font-size: 0.9rem;
+  }
+
+  .daily-option-letter {
+    width: 30px;
+    height: 30px;
+
+    border-radius: 7px;
+
+    font-size: 0.84rem;
+  }
+
+  .daily-option-status {
+    font-size: 1rem;
+  }
+
+  /*
+    Submit button appears much sooner after the answers.
+  */
+
+  .daily-action-row {
+    margin-top: 16px;
+  }
+
+  .daily-primary-button,
+  .daily-secondary-button {
+    min-height: 44px;
+
+    padding: 0 18px;
+
+    border-radius: 9px;
+
+    font-size: 0.9rem;
+  }
+
+  /*
+    Feedback appears after the user has answered, so it can
+    still be clear without consuming as much vertical space.
+  */
+
+  .daily-feedback {
+    margin-top: 16px;
+
+    padding: 15px 16px;
+
+    border-radius: 10px;
+  }
+
+  .daily-feedback h3 {
+    font-size: 1rem;
+  }
+
+  .daily-feedback p {
+    font-size: 0.9rem;
+
+    line-height: 1.5;
+  }
+
+  /*
+    Compact completed/result state too.
+  */
+
+  .daily-results {
+    padding: 22px 16px;
+  }
+
+  .daily-results .daily-lock-icon,
+  .daily-results .daily-result-icon {
+    width: 52px;
+    height: 52px;
+
+    margin-bottom: 14px;
+  }
+
+  .daily-results h1 {
+    margin-bottom: 16px;
+
+    font-size: 1.8rem;
+  }
+
+  .daily-results-score {
+    font-size: 2.8rem;
+  }
+
+  .daily-results-percentage {
+    margin-bottom: 18px;
+  }
+
+  .daily-reward-card {
+    padding: 16px;
+
+    margin-bottom: 18px;
+  }
+
+  .daily-locked-message,
+  .daily-guest-message {
+    margin: 20px auto;
+
+    padding: 18px 16px;
+  }
+
+  .daily-result-actions {
+    margin-top: 22px;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .daily-progress-fill,
+  .daily-option {
+    transition: none;
   }
 }
