@@ -1,45 +1,162 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+
 import { supabase } from "../lib/supabase";
+import AppLoading from "../components/AppLoading";
+
 import "../../styles/AuthPage.css";
-import "../../styles/AppLoading.css";
+
+function getAuthUrlState() {
+  const hashParams = new URLSearchParams(window.location.hash.replace("#", ""));
+
+  const queryParams = new URLSearchParams(window.location.search);
+
+  const errorCode =
+    hashParams.get("error_code") || queryParams.get("error_code");
+
+  const errorDescription =
+    hashParams.get("error_description") || queryParams.get("error_description");
+
+  const recoveryType = hashParams.get("type") || queryParams.get("type");
+
+  return {
+    errorCode,
+    errorDescription,
+    indicatesRecovery: recoveryType === "recovery",
+  };
+}
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
 
   const [canReset, setCanReset] = useState(false);
+
   const [expired, setExpired] = useState(false);
+
   const [loadingSession, setLoadingSession] = useState(true);
+
   const [saving, setSaving] = useState(false);
 
   const [error, setError] = useState("");
+
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.replace("#", ""));
+  /* =======================================================
+     VERIFY PASSWORD RECOVERY SESSION
+     ======================================================= */
 
-    const errorCode = params.get("error_code");
-    const errorDescription = params.get("error_description");
+  useEffect(() => {
+    let mounted = true;
+
+    let recoveryEventSeen = false;
+
+    const { errorCode, errorDescription, indicatesRecovery } =
+      getAuthUrlState();
+
+    /* -----------------------------------------------------
+       EXPIRED / INVALID OTP
+       ----------------------------------------------------- */
 
     if (errorCode === "otp_expired") {
       setExpired(true);
-      setError(
-        errorDescription
-          ? decodeURIComponent(errorDescription.replace(/\+/g, " "))
-          : "This password reset link has expired.",
-      );
+
+      setError(errorDescription || "This password reset link has expired.");
+
       setLoadingSession(false);
-      return;
+
+      return undefined;
     }
+
+    /* -----------------------------------------------------
+       AUTH LISTENER
+
+       PASSWORD_RECOVERY is the authoritative signal.
+
+       SIGNED_IN / INITIAL_SESSION are only accepted when
+       the URL itself also indicates a recovery flow.
+
+       This prevents an ordinary signed-in user from simply
+       visiting /reset-password and receiving the reset form.
+       ----------------------------------------------------- */
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) {
+        return;
+      }
+
+      if (event === "PASSWORD_RECOVERY" && session) {
+        recoveryEventSeen = true;
+
+        setCanReset(true);
+        setExpired(false);
+        setError("");
+        setLoadingSession(false);
+
+        return;
+      }
+
+      if (
+        (event === "SIGNED_IN" || event === "INITIAL_SESSION") &&
+        session &&
+        indicatesRecovery
+      ) {
+        recoveryEventSeen = true;
+
+        setCanReset(true);
+        setExpired(false);
+        setError("");
+        setLoadingSession(false);
+      }
+    });
+
+    /* -----------------------------------------------------
+       EXISTING RECOVERY SESSION
+
+       This supports recovery links where Supabase has
+       already established the session before this component
+       finishes mounting.
+       ----------------------------------------------------- */
 
     async function checkRecoverySession() {
       const {
         data: { session },
+        error: sessionError,
       } = await supabase.auth.getSession();
 
-      if (session) {
+      if (!mounted) {
+        return;
+      }
+
+      if (sessionError) {
+        console.error("Could not verify recovery session:", sessionError);
+
+        setCanReset(false);
+
+        setError("We could not verify this password reset link.");
+
+        setLoadingSession(false);
+
+        return;
+      }
+
+      /*
+        A normal authenticated session is NOT enough.
+
+        We only accept the existing session when:
+        - the recovery auth event has already been seen, or
+        - the current URL explicitly identifies itself as
+          a password recovery flow.
+      */
+
+      if (session && (recoveryEventSeen || indicatesRecovery)) {
         setCanReset(true);
+        setExpired(false);
+      } else if (!recoveryEventSeen) {
+        setCanReset(false);
       }
 
       setLoadingSession(false);
@@ -47,28 +164,25 @@ export default function ResetPasswordPage() {
 
     checkRecoverySession();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (
-        event === "PASSWORD_RECOVERY" ||
-        event === "SIGNED_IN" ||
-        event === "INITIAL_SESSION"
-      ) {
-        if (session) {
-          setCanReset(true);
-          setExpired(false);
-        }
-      }
-    });
-
     return () => {
+      mounted = false;
+
       subscription.unsubscribe();
     };
   }, []);
 
+  /* =======================================================
+     UPDATE PASSWORD
+     ======================================================= */
+
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (!canReset) {
+      setError("This password reset session is no longer valid.");
+
+      return;
+    }
 
     setSaving(true);
     setError("");
@@ -79,7 +193,9 @@ export default function ResetPasswordPage() {
 
     if (error) {
       setError(error.message);
+
       setSaving(false);
+
       return;
     }
 
@@ -88,24 +204,17 @@ export default function ResetPasswordPage() {
     setSaving(false);
   }
 
+  /* =======================================================
+     LOADING
+     ======================================================= */
+
   if (loadingSession) {
-    return (
-      <main className="auth-page">
-        <section className="auth-card auth-signed-in">
-          <Link to="/" className="auth-brand">
-            <img src="/histopository-logo.png" alt="" />
-            <span>Histopository</span>
-          </Link>
-
-          <div className="app-loading-spinner" />
-
-          <h1>Checking your reset link</h1>
-
-          <p>Please wait a moment.</p>
-        </section>
-      </main>
-    );
+    return <AppLoading message="Checking your reset link..." />;
   }
+
+  /* =======================================================
+     EXPIRED / INVALID RECOVERY LINK
+     ======================================================= */
 
   if (expired || !canReset) {
     return (
@@ -113,6 +222,7 @@ export default function ResetPasswordPage() {
         <section className="auth-card auth-signed-in">
           <Link to="/" className="auth-brand">
             <img src="/histopository-logo.png" alt="" />
+
             <span>Histopository</span>
           </Link>
 
@@ -146,12 +256,17 @@ export default function ResetPasswordPage() {
     );
   }
 
+  /* =======================================================
+     SUCCESS
+     ======================================================= */
+
   if (success) {
     return (
       <main className="auth-page">
         <section className="auth-card auth-signed-in">
           <Link to="/" className="auth-brand">
             <img src="/histopository-logo.png" alt="" />
+
             <span>Histopository</span>
           </Link>
 
@@ -175,11 +290,16 @@ export default function ResetPasswordPage() {
     );
   }
 
+  /* =======================================================
+     RESET FORM
+     ======================================================= */
+
   return (
     <main className="auth-page">
       <section className="auth-card">
         <Link to="/" className="auth-brand">
           <img src="/histopository-logo.png" alt="" />
+
           <span>Histopository</span>
         </Link>
 
