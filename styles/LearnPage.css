@@ -34,7 +34,7 @@
 
 .learn-welcome > div:first-child {
   min-width: 0;
-  max-width: 760px;
+  flex: 1 1 0;
 }
 
 .learn-eyebrow,
@@ -53,15 +53,15 @@
 
 .learn-welcome h1 {
   margin: 0;
-
   color: var(--color-cream);
-
   font-family: Georgia, "Times New Roman", serif;
-
   font-size: clamp(2rem, 4vw, 3.4rem);
   line-height: 1.05;
-
   letter-spacing: -0.025em;
+  max-width: 100%;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .learn-welcome > div:first-child > p:last-child {

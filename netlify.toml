@@ -3,31 +3,66 @@
   publish = "dist"
   functions = "netlify/functions"
 
+
+# ----------------------------------------------------------
+# Redirect old Netlify URL to canonical Histopository domain
+# ----------------------------------------------------------
+
 [[redirects]]
   from = "https://hpy-site.netlify.app/*"
   to = "https://histopository.com/:splat"
   status = 301
   force = true
 
-# API route must come before the SPA fallback.
+
+# ----------------------------------------------------------
+# API route must come before the SPA fallback
+# ----------------------------------------------------------
+
 [[redirects]]
   from = "/api/subscribe"
   to = "/.netlify/functions/subscribe"
   status = 200
 
-# React/Vite SPA fallback.
+
+# ----------------------------------------------------------
+# React / Vite SPA fallback
+# ----------------------------------------------------------
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Baseline browser hardening for static responses.
+
+# ----------------------------------------------------------
+# Security headers
+# ----------------------------------------------------------
+
 [[headers]]
   for = "/*"
 
   [headers.values]
+
+    # Prevent Histopository being embedded in an iframe.
     X-Frame-Options = "DENY"
+
+    # Prevent MIME-type sniffing.
     X-Content-Type-Options = "nosniff"
+
+    # Limit referrer information sent to other sites.
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Disable browser features Histopository does not use.
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
 
+    # Force HTTPS for future visits.
+    # We are deliberately NOT adding `preload` yet.
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+    # Content Security Policy
+    #
+    # Supabase is allowed for API/auth/storage traffic and images.
+    # style-src includes unsafe-inline because the React app currently
+    # uses inline style properties for things such as progress widths.
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self' data:; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests"
