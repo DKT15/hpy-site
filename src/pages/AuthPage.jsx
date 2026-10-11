@@ -498,7 +498,7 @@ export default function AuthPage() {
     }
 
     if (resultSaved) {
-      heading = "Your result is saved";
+      heading = "Account confirmed";
 
       const score = handoffCompletion?.score;
 
@@ -507,7 +507,7 @@ export default function AuthPage() {
       const xp = handoffCompletion?.xp_earned ?? 0;
 
       if (typeof score === "number" && typeof total === "number") {
-        description = `${handoffLessonName} has been saved with a score of ${score}/${total}. You earned ${xp} XP.`;
+        description = `${handoffLessonName} has also been saved to your account with a score of ${score}/${total}. You earned ${xp} XP.`;
       } else {
         description = `${handoffLessonName} has been added to your Histopository progress.`;
       }
