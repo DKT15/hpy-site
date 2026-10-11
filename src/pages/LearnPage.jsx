@@ -14,6 +14,10 @@ function getLocalDateString() {
   return `${year}-${month}-${day}`;
 }
 
+function getBrowserTimezone() {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+}
+
 export default function LearnPage() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -36,11 +40,13 @@ export default function LearnPage() {
       setUser(user ?? null);
 
       const today = getLocalDateString();
+      const browserTimezone = getBrowserTimezone();
 
       const { data: dailyData, error: dailyError } = await supabase.rpc(
         "get_daily_challenge",
         {
           p_challenge_date: today,
+          p_timezone: browserTimezone,
         },
       );
 
@@ -155,6 +161,38 @@ export default function LearnPage() {
     }
 
     loadDashboard();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      const nextUser = currentSession?.user ?? null;
+
+      setUser(nextUser);
+
+      if (!nextUser) {
+        /*
+          Logging out does not remount /learn when the user is
+          already on that route. Clear account-only dashboard
+          state immediately so signed-in data cannot remain
+          visible until a manual refresh.
+        */
+        setProfile(null);
+        setProgress([]);
+
+        setDailyChallenge((current) =>
+          current
+            ? {
+                ...current,
+                attempt: null,
+              }
+            : current,
+        );
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (loading) {
