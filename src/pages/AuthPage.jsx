@@ -3,9 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { supabase } from "../lib/supabase";
+import AppLoading from "../components/AppLoading";
 import "../../styles/AuthPage.css";
 
 const PENDING_GUEST_ATTEMPT_KEY = "histopository_pending_guest_lesson_attempt";
+
+const PENDING_GUEST_DAILY_KEY = "histopository_pending_guest_daily_attempt";
 
 const PENDING_ATTEMPT_MAX_AGE = 24 * 60 * 60 * 1000;
 
@@ -71,14 +74,6 @@ async function savePendingGuestProgress() {
     };
   }
 
-  /*
-    Never trust a browser-stored score or XP.
-
-    Only the submitted question/answer IDs are
-    sent to Supabase. complete_lesson_quiz()
-    calculates the score and XP server-side.
-  */
-
   const { data, error } = await supabase.rpc("complete_lesson_quiz", {
     p_lesson_slug: attempt.lesson_slug,
 
@@ -102,7 +97,119 @@ async function savePendingGuestProgress() {
   return {
     status: "saved",
     completion,
-    lessonName: attempt.lesson_name || "your lesson",
+
+    name: attempt.lesson_name || "Your lesson",
+  };
+}
+
+/* =========================================================
+   PENDING GUEST DAILY CHALLENGE
+   ========================================================= */
+
+function getPendingGuestDailyAttempt() {
+  try {
+    const raw = localStorage.getItem(PENDING_GUEST_DAILY_KEY);
+
+    if (!raw) {
+      return null;
+    }
+
+    const attempt = JSON.parse(raw);
+
+    const isValid =
+      attempt?.version === 1 &&
+      typeof attempt.challenge_id === "string" &&
+      attempt.challenge_id.length > 0 &&
+      typeof attempt.challenge_date === "string" &&
+      attempt.challenge_date.length > 0 &&
+      Array.isArray(attempt.answers) &&
+      attempt.answers.length > 0 &&
+      typeof attempt.saved_at === "number";
+
+    if (!isValid) {
+      localStorage.removeItem(PENDING_GUEST_DAILY_KEY);
+
+      return null;
+    }
+
+    const isExpired = Date.now() - attempt.saved_at > PENDING_ATTEMPT_MAX_AGE;
+
+    if (isExpired) {
+      localStorage.removeItem(PENDING_GUEST_DAILY_KEY);
+
+      return null;
+    }
+
+    return attempt;
+  } catch (storageError) {
+    console.error("Could not read guest Daily Challenge:", storageError);
+
+    return null;
+  }
+}
+
+function clearPendingGuestDailyAttempt() {
+  try {
+    localStorage.removeItem(PENDING_GUEST_DAILY_KEY);
+  } catch (storageError) {
+    console.error("Could not clear guest Daily Challenge:", storageError);
+  }
+}
+
+async function savePendingGuestDailyProgress() {
+  const attempt = getPendingGuestDailyAttempt();
+
+  if (!attempt) {
+    return {
+      status: "none",
+      completion: null,
+    };
+  }
+
+  const { data, error } = await supabase.rpc("complete_daily_challenge", {
+    p_challenge_id: attempt.challenge_id,
+
+    p_answers: attempt.answers,
+  });
+
+  if (error) {
+    console.error("Could not save guest Daily Challenge:", error);
+
+    return {
+      status: "error",
+      error,
+      completion: null,
+    };
+  }
+
+  const completion = Array.isArray(data) ? data[0] : data;
+
+  clearPendingGuestDailyAttempt();
+
+  return {
+    status: "saved",
+    completion,
+
+    name: attempt.challenge_title || "Daily History Challenge",
+  };
+}
+
+/* =========================================================
+   HANDOFF ROUTING
+   ========================================================= */
+
+async function saveSelectedHandoff(handoffType) {
+  if (handoffType === "daily") {
+    return savePendingGuestDailyProgress();
+  }
+
+  if (handoffType === "lesson") {
+    return savePendingGuestProgress();
+  }
+
+  return {
+    status: "none",
+    completion: null,
   };
 }
 
@@ -116,6 +223,16 @@ export default function AuthPage() {
   const [searchParams] = useSearchParams();
 
   const wantsProgressHandoff = searchParams.get("saveProgress") === "1";
+
+  const wantsDailyHandoff = searchParams.get("saveDaily") === "1";
+
+  const wantsAnyHandoff = wantsProgressHandoff || wantsDailyHandoff;
+
+  const handoffType = wantsDailyHandoff
+    ? "daily"
+    : wantsProgressHandoff
+      ? "lesson"
+      : null;
 
   const confirmedFromEmail = searchParams.get("confirmed") === "1";
 
@@ -146,14 +263,11 @@ export default function AuthPage() {
 
   const [handoffCompletion, setHandoffCompletion] = useState(null);
 
-  const [handoffLessonName, setHandoffLessonName] = useState("");
+  const [handoffName, setHandoffName] = useState("");
 
   /*
-    This ref is the frontend protection against
-    React/auth events triggering the handoff twice.
-
-    The database function now also has concurrency
-    protection, so both layers are protected.
+    Prevent the same mounted AuthPage instance
+    from starting the handoff more than once.
   */
 
   const handoffStarted = useRef(false);
@@ -200,20 +314,20 @@ export default function AuthPage() {
 
   /* =======================================================
      GUEST → ACCOUNT HANDOFF
-
-     This is now the ONLY automatic place that calls
-     complete_lesson_quiz after authentication.
      ======================================================= */
 
   useEffect(() => {
     async function performHandoff() {
-      if (!session || !wantsProgressHandoff || handoffStarted.current) {
+      if (!session || !handoffType || handoffStarted.current) {
         return;
       }
 
       handoffStarted.current = true;
 
-      const pendingAttempt = getPendingGuestAttempt();
+      const pendingAttempt =
+        handoffType === "daily"
+          ? getPendingGuestDailyAttempt()
+          : getPendingGuestAttempt();
 
       if (!pendingAttempt) {
         setHandoffStatus("none");
@@ -224,14 +338,20 @@ export default function AuthPage() {
       setHandoffStatus("saving");
       setHandoffError("");
 
-      const result = await savePendingGuestProgress();
+      const result = await saveSelectedHandoff(handoffType);
 
       if (result.status === "error") {
         setHandoffStatus("error");
 
-        setHandoffError(
-          "You're signed in, but we couldn't save your guest lesson result. Your result is still stored on this device so you can try again.",
-        );
+        if (handoffType === "daily") {
+          setHandoffError(
+            "We couldn't confirm that your Daily Challenge result was saved. Your result is still stored on this device, so you can safely try again.",
+          );
+        } else {
+          setHandoffError(
+            "You're signed in, but we couldn't save your guest lesson result. Your result is still stored on this device so you can try again.",
+          );
+        }
 
         return;
       }
@@ -239,7 +359,7 @@ export default function AuthPage() {
       if (result.status === "saved") {
         setHandoffCompletion(result.completion);
 
-        setHandoffLessonName(result.lessonName);
+        setHandoffName(result.name);
 
         setHandoffStatus("saved");
 
@@ -250,7 +370,7 @@ export default function AuthPage() {
     }
 
     performHandoff();
-  }, [session, wantsProgressHandoff]);
+  }, [session, handoffType]);
 
   /* =======================================================
      MODE
@@ -269,21 +389,27 @@ export default function AuthPage() {
      ======================================================= */
 
   async function retryGuestProgressSave() {
-    if (!wantsProgressHandoff) {
+    if (!handoffType) {
       return;
     }
 
     setHandoffStatus("saving");
     setHandoffError("");
 
-    const result = await savePendingGuestProgress();
+    const result = await saveSelectedHandoff(handoffType);
 
     if (result.status === "error") {
       setHandoffStatus("error");
 
-      setHandoffError(
-        "We still couldn't save your lesson result. Your pending result has been kept so you can try again.",
-      );
+      if (handoffType === "daily") {
+        setHandoffError(
+          "We still couldn't confirm your Daily Challenge result. Your pending result has been kept on this device.",
+        );
+      } else {
+        setHandoffError(
+          "We still couldn't save your lesson result. Your pending result has been kept so you can try again.",
+        );
+      }
 
       return;
     }
@@ -291,7 +417,7 @@ export default function AuthPage() {
     if (result.status === "saved") {
       setHandoffCompletion(result.completion);
 
-      setHandoffLessonName(result.lessonName);
+      setHandoffName(result.name);
 
       setHandoffStatus("saved");
 
@@ -341,25 +467,29 @@ export default function AuthPage() {
        ----------------------------------------------------- */
 
     if (mode === "signup") {
-      const pendingAttempt = wantsProgressHandoff
-        ? getPendingGuestAttempt()
-        : null;
+      let pendingAttempt = null;
 
-      /*
-        Email confirmation now returns to /login,
-        which restores the green-tick confirmation
-        screen.
+      if (handoffType === "daily") {
+        pendingAttempt = getPendingGuestDailyAttempt();
+      }
 
-        If this signup came from a guest lesson,
-        saveProgress=1 survives the email round trip.
-      */
+      if (handoffType === "lesson") {
+        pendingAttempt = getPendingGuestAttempt();
+      }
 
-      const confirmationPath = pendingAttempt
-        ? "/login?confirmed=1&saveProgress=1"
-        : "/login?confirmed=1";
+      let confirmationPath = "/login?confirmed=1";
+
+      if (pendingAttempt && handoffType === "lesson") {
+        confirmationPath = "/login?confirmed=1&saveProgress=1";
+      }
+
+      if (pendingAttempt && handoffType === "daily") {
+        confirmationPath = "/login?confirmed=1&saveDaily=1";
+      }
 
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
+
         password,
 
         options: {
@@ -375,16 +505,6 @@ export default function AuthPage() {
         return;
       }
 
-      /*
-        If email confirmation is disabled,
-        Supabase can return a session immediately.
-
-        We ONLY set the session here.
-
-        We do NOT call complete_lesson_quiz here.
-        The handoff effect above will handle it once.
-      */
-
       if (data.session) {
         setSession(data.session);
 
@@ -393,7 +513,11 @@ export default function AuthPage() {
         return;
       }
 
-      if (pendingAttempt) {
+      if (pendingAttempt && handoffType === "daily") {
+        setMessage(
+          "Account created. Check your email to confirm your account. Your Daily Challenge result will be saved when you return.",
+        );
+      } else if (pendingAttempt && handoffType === "lesson") {
         setMessage(
           "Account created. Check your email to confirm your account. Your lesson result will be saved when you return.",
         );
@@ -414,6 +538,7 @@ export default function AuthPage() {
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
+
       password,
     });
 
@@ -431,16 +556,7 @@ export default function AuthPage() {
 
     setLoading(false);
 
-    /*
-      Normal login:
-      continue straight to Learn.
-
-      Explicit guest-progress login:
-      stay here so the ONE handoff effect can save
-      the result and show the green tick screen.
-    */
-
-    if (!wantsProgressHandoff) {
+    if (!wantsAnyHandoff) {
       navigate("/learn", {
         replace: true,
       });
@@ -452,19 +568,7 @@ export default function AuthPage() {
      ======================================================= */
 
   if (sessionLoading) {
-    return (
-      <main className="auth-page">
-        <section className="auth-card auth-signed-in">
-          <Link to="/" className="auth-brand">
-            <img src="/histopository-logo.png" alt="" />
-
-            <span>Histopository</span>
-          </Link>
-
-          <p>Checking your account...</p>
-        </section>
-      </main>
-    );
+    return <AppLoading message="Checking your account..." />;
   }
 
   /* =======================================================
@@ -483,22 +587,24 @@ export default function AuthPage() {
     let description =
       "Continue learning, take today's challenge or view your progress.";
 
-    if (confirmedFromEmail && !wantsProgressHandoff) {
-      heading = "Your account is ready";
+    if (confirmedFromEmail && !wantsAnyHandoff) {
+      heading = "Account confirmed";
 
       description =
         "Your email has been confirmed and your Histopository account is ready to use.";
     }
 
     if (resultSaving) {
-      heading = "Finishing your account";
+      heading = confirmedFromEmail ? "Account confirmed" : "Saving your result";
 
       description =
-        "Your account is ready. We're securely saving the lesson you completed as a guest.";
+        handoffType === "daily"
+          ? "Your account is ready. We're securely saving the Daily Challenge you completed as a guest."
+          : "Your account is ready. We're securely saving the lesson you completed as a guest.";
     }
 
     if (resultSaved) {
-      heading = "Account confirmed";
+      heading = confirmedFromEmail ? "Account confirmed" : "Result saved";
 
       const score = handoffCompletion?.score;
 
@@ -506,15 +612,19 @@ export default function AuthPage() {
 
       const xp = handoffCompletion?.xp_earned ?? 0;
 
+      const savePhrase = confirmedFromEmail
+        ? "has also been saved to your account"
+        : "has been saved to your account";
+
       if (typeof score === "number" && typeof total === "number") {
-        description = `${handoffLessonName} has also been saved to your account with a score of ${score}/${total}. You earned ${xp} XP.`;
+        description = `${handoffName} ${savePhrase} with a score of ${score}/${total}. You earned ${xp} XP.`;
       } else {
-        description = `${handoffLessonName} has been added to your Histopository progress.`;
+        description = `${handoffName} ${savePhrase}.`;
       }
     }
 
-    if (wantsProgressHandoff && handoffStatus === "none") {
-      heading = "Your account is ready";
+    if (wantsAnyHandoff && handoffStatus === "none") {
+      heading = confirmedFromEmail ? "Account confirmed" : "You're signed in";
 
       description = "You're signed in and ready to continue learning.";
     }
@@ -572,17 +682,31 @@ export default function AuthPage() {
 
   const isSignup = mode === "signup";
 
-  /*
-    Old browser progress is deliberately invisible during
-    a normal login.
+  const pendingGuestAttempt =
+    handoffType === "lesson" ? getPendingGuestAttempt() : null;
 
-    It only becomes eligible when the user arrived via the
-    explicit save-result CTA.
-  */
+  const pendingGuestDailyAttempt =
+    handoffType === "daily" ? getPendingGuestDailyAttempt() : null;
 
-  const pendingGuestAttempt = wantsProgressHandoff
-    ? getPendingGuestAttempt()
-    : null;
+  const hasPendingHandoff = Boolean(
+    pendingGuestAttempt || pendingGuestDailyAttempt,
+  );
+
+  let authDescription = "Continue your learning journey.";
+
+  if (isForgot) {
+    authDescription =
+      "Enter your email and we’ll send you a password reset link.";
+  } else if (pendingGuestDailyAttempt) {
+    authDescription =
+      "Create an account or log in to save the Daily Challenge result you just completed.";
+  } else if (pendingGuestAttempt) {
+    authDescription =
+      "Create an account or log in to save the lesson result you just completed.";
+  } else if (isSignup) {
+    authDescription =
+      "Save your progress, earn XP and build your history streak.";
+  }
 
   return (
     <main className="auth-page">
@@ -610,15 +734,7 @@ export default function AuthPage() {
                 : "Log in"}
           </h1>
 
-          <p>
-            {isForgot
-              ? "Enter your email and we’ll send you a password reset link."
-              : pendingGuestAttempt
-                ? "Create an account or log in to save the lesson result you just completed."
-                : isSignup
-                  ? "Save your progress, earn XP and build your history streak."
-                  : "Continue your learning journey."}
-          </p>
+          <p>{authDescription}</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
@@ -678,10 +794,10 @@ export default function AuthPage() {
               : isForgot
                 ? "Send reset link"
                 : isSignup
-                  ? pendingGuestAttempt
+                  ? hasPendingHandoff
                     ? "Create account & save result"
                     : "Create account"
-                  : pendingGuestAttempt
+                  : hasPendingHandoff
                     ? "Log in & save result"
                     : "Log in"}
           </button>

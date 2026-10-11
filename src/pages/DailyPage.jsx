@@ -4,6 +4,8 @@ import { supabase } from "../lib/supabase";
 import "/styles/DailyPage.css";
 import AppLoading from "../components/AppLoading";
 
+const PENDING_GUEST_DAILY_KEY = "histopository_pending_guest_daily_attempt";
+
 function getLocalDateString() {
   const now = new Date();
 
@@ -12,6 +14,51 @@ function getLocalDateString() {
   const day = String(now.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+}
+
+/* =========================================================
+   GUEST DAILY HANDOFF
+
+   Only IDs are stored.
+
+   We deliberately do NOT store a trusted score or XP value.
+   complete_daily_challenge() will calculate those again
+   server-side after authentication.
+   ========================================================= */
+
+function storeGuestDailyAttempt({
+  challengeId,
+  challengeDate,
+  challengeTitle,
+  answers,
+}) {
+  try {
+    if (!challengeId || !Array.isArray(answers) || answers.length === 0) {
+      return false;
+    }
+
+    const payload = {
+      version: 1,
+
+      challenge_id: challengeId,
+
+      challenge_date: challengeDate || getLocalDateString(),
+
+      challenge_title: challengeTitle || "Daily History Challenge",
+
+      answers,
+
+      saved_at: Date.now(),
+    };
+
+    localStorage.setItem(PENDING_GUEST_DAILY_KEY, JSON.stringify(payload));
+
+    return true;
+  } catch (storageError) {
+    console.error("Could not store guest Daily Challenge:", storageError);
+
+    return false;
+  }
 }
 
 export default function DailyPage() {
@@ -27,10 +74,16 @@ export default function DailyPage() {
   const [completion, setCompletion] = useState(null);
   const [finished, setFinished] = useState(false);
 
+  const [guestAttemptStored, setGuestAttemptStored] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  /* =======================================================
+     LOAD TODAY'S CHALLENGE
+     ======================================================= */
 
   useEffect(() => {
     async function loadChallenge() {
@@ -51,8 +104,11 @@ export default function DailyPage() {
 
       if (error) {
         console.error(error);
+
         setError("Could not load today’s challenge.");
+
         setLoading(false);
+
         return;
       }
 
@@ -60,11 +116,19 @@ export default function DailyPage() {
 
       setChallenge(loadedChallenge ?? null);
 
+      /*
+        Signed-in users who already completed
+        today's challenge remain locked.
+      */
+
       if (loadedChallenge?.attempt) {
         setCompletion({
           already_completed: true,
+
           score: loadedChallenge.attempt.score,
+
           total_questions: loadedChallenge.attempt.total_questions,
+
           xp_earned: loadedChallenge.attempt.xp_earned,
         });
 
@@ -76,6 +140,10 @@ export default function DailyPage() {
 
     loadChallenge();
   }, []);
+
+  /* =======================================================
+     CHECK ANSWER
+     ======================================================= */
 
   async function checkAnswer() {
     if (!selectedAnswer || checking || result) {
@@ -89,13 +157,17 @@ export default function DailyPage() {
 
     const { data, error } = await supabase.rpc("check_answer", {
       p_question_id: question.id,
+
       p_answer_id: selectedAnswer,
     });
 
     if (error) {
       console.error(error);
+
       setError("Could not check your answer.");
+
       setChecking(false);
+
       return;
     }
 
@@ -107,6 +179,7 @@ export default function DailyPage() {
       ...current,
       {
         question_id: question.id,
+
         answer_id: selectedAnswer,
       },
     ]);
@@ -118,54 +191,107 @@ export default function DailyPage() {
     setChecking(false);
   }
 
+  /* =======================================================
+     FINISH CHALLENGE
+     ======================================================= */
+
   async function finishChallenge() {
+    /*
+      GUEST
+
+      Save only the challenge ID/date and submitted
+      question/answer IDs.
+
+      The server will validate and score everything
+      after the user authenticates.
+    */
+
     if (!user) {
+      const stored = storeGuestDailyAttempt({
+        challengeId: challenge.id,
+
+        challengeDate: challenge.challenge_date ?? getLocalDateString(),
+
+        challengeTitle: challenge.title ?? "Daily History Challenge",
+
+        answers: responses,
+      });
+
+      setGuestAttemptStored(stored);
       setFinished(true);
+
       return;
     }
+
+    /*
+      SIGNED-IN USER
+
+      Existing working completion flow remains
+      unchanged.
+    */
 
     setSaving(true);
     setError("");
 
     const { data, error } = await supabase.rpc("complete_daily_challenge", {
       p_challenge_id: challenge.id,
+
       p_answers: responses,
     });
 
     if (error) {
       console.error(error);
+
       setError("Your Daily Challenge could not be saved.");
+
       setSaving(false);
+
       return;
     }
 
     const completionResult = Array.isArray(data) ? data[0] : data;
 
     setCompletion(completionResult);
+
     setFinished(true);
     setSaving(false);
   }
 
+  /* =======================================================
+     NEXT QUESTION
+     ======================================================= */
+
   async function handleNext() {
     if (currentIndex === challenge.questions.length - 1) {
       await finishChallenge();
+
       return;
     }
 
     setCurrentIndex((current) => current + 1);
+
     setSelectedAnswer(null);
     setResult(null);
   }
 
+  /* =======================================================
+     LOADING
+     ======================================================= */
+
   if (loading) {
     return <AppLoading message="Finding today’s challenge..." />;
   }
+
+  /* =======================================================
+     LOAD ERROR
+     ======================================================= */
 
   if (error && !challenge) {
     return (
       <main className="daily-page">
         <section className="daily-panel">
           <h1>Daily History Challenge</h1>
+
           <p>{error}</p>
 
           <Link to="/learn" className="daily-primary-button">
@@ -175,6 +301,10 @@ export default function DailyPage() {
       </main>
     );
   }
+
+  /* =======================================================
+     NO CHALLENGE
+     ======================================================= */
 
   if (!challenge) {
     return (
@@ -200,6 +330,10 @@ export default function DailyPage() {
   }
 
   const questions = challenge.questions ?? [];
+
+  /* =======================================================
+     RESULTS
+     ======================================================= */
 
   if (finished) {
     const total = completion?.total_questions ?? questions.length;
@@ -257,9 +391,18 @@ export default function DailyPage() {
                 and build your streak.
               </p>
 
-              <Link to="/login" className="daily-primary-button">
-                Create free account
-              </Link>
+              {guestAttemptStored ? (
+                <Link
+                  to="/login?mode=signup&saveDaily=1"
+                  className="daily-primary-button"
+                >
+                  Create account &amp; save result
+                </Link>
+              ) : (
+                <Link to="/login?mode=signup" className="daily-primary-button">
+                  Create free account
+                </Link>
+              )}
             </div>
           )}
 
@@ -279,6 +422,10 @@ export default function DailyPage() {
     );
   }
 
+  /* =======================================================
+     NO QUESTIONS
+     ======================================================= */
+
   if (!questions.length) {
     return (
       <main className="daily-page">
@@ -290,6 +437,10 @@ export default function DailyPage() {
       </main>
     );
   }
+
+  /* =======================================================
+     ACTIVE QUESTION
+     ======================================================= */
 
   const question = questions[currentIndex];
 
@@ -317,7 +468,9 @@ export default function DailyPage() {
         <div className="daily-progress-track">
           <div
             className="daily-progress-fill"
-            style={{ width: `${progress}%` }}
+            style={{
+              width: `${progress}%`,
+            }}
           />
         </div>
 
