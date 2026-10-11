@@ -98,8 +98,12 @@ export default function DailyPage() {
 
       const today = getLocalDateString();
 
+      const browserTimezone =
+        Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+
       const { data, error } = await supabase.rpc("get_daily_challenge", {
         p_challenge_date: today,
+        p_timezone: browserTimezone,
       });
 
       if (error) {
