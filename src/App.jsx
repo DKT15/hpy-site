@@ -16,6 +16,7 @@ import ProfilePage from "./pages/ProfilePage";
 import RequireAdmin from "./admin/RequireAdmin";
 import AdminLayout from "./admin/AdminLayout";
 import AdminDashboard from "./admin/AdminDashboard";
+import TopicsAdmin from "./admin/TopicsAdmin";
 
 import { supabase } from "./lib/supabase";
 
@@ -80,6 +81,7 @@ export default function App() {
       <Route element={<RequireAdmin />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
+          <Route path="topics" element={<TopicsAdmin />} />
         </Route>
       </Route>
     </Routes>

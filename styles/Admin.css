@@ -394,6 +394,297 @@
 }
 
 /* =========================================================
+   ADMIN PAGE HEADING
+   ========================================================= */
+
+.admin-page-heading {
+  padding: 30px 34px;
+
+  color: #f1e6c9;
+
+  background: linear-gradient(135deg, #061f31, #0c394b);
+
+  border-radius: 18px;
+}
+
+.admin-page-heading h1 {
+  margin: 5px 0 8px;
+
+  font-family: Georgia, serif;
+
+  font-size: clamp(2rem, 4vw, 2.8rem);
+}
+
+.admin-page-heading > div > p:last-child {
+  max-width: 680px;
+
+  margin: 0;
+
+  color: rgba(241, 230, 201, 0.75);
+
+  line-height: 1.6;
+}
+
+/* =========================================================
+   FORMS
+   ========================================================= */
+
+.admin-form {
+  display: grid;
+
+  gap: 20px;
+}
+
+.admin-form-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 18px;
+}
+
+.admin-field {
+  min-width: 0;
+
+  display: grid;
+
+  gap: 8px;
+}
+
+.admin-field label {
+  color: #061f31;
+
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+.admin-field input,
+.admin-field textarea,
+.admin-field select {
+  width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  color: #061f31;
+
+  background: #fff;
+
+  border: 1px solid rgba(6, 31, 49, 0.18);
+
+  border-radius: 9px;
+
+  font: inherit;
+}
+
+.admin-field input,
+.admin-field select {
+  min-height: 46px;
+
+  padding: 0 13px;
+}
+
+.admin-field textarea {
+  padding: 12px 13px;
+
+  resize: vertical;
+
+  line-height: 1.55;
+}
+
+.admin-primary-action,
+.admin-secondary-action,
+.admin-text-button {
+  font: inherit;
+  font-weight: 850;
+
+  cursor: pointer;
+}
+
+.admin-primary-action {
+  min-height: 46px;
+
+  width: fit-content;
+
+  padding: 0 20px;
+
+  color: #061f31;
+
+  background: #e6b83f;
+
+  border: 0;
+
+  border-radius: 9px;
+}
+
+.admin-primary-action:disabled {
+  cursor: wait;
+
+  opacity: 0.6;
+}
+
+.admin-secondary-action {
+  min-height: 40px;
+
+  padding: 0 16px;
+
+  color: #061f31;
+
+  background: #f1e6c9;
+
+  border: 1px solid rgba(6, 31, 49, 0.1);
+
+  border-radius: 8px;
+}
+
+.admin-text-button {
+  padding: 0;
+
+  color: #1f5a5f;
+
+  background: transparent;
+
+  border: 0;
+}
+
+.admin-message.success {
+  color: #25613e;
+
+  background: #e8f4eb;
+}
+
+/* =========================================================
+   CONTENT LIST
+   ========================================================= */
+
+.admin-list {
+  display: grid;
+
+  gap: 12px;
+}
+
+.admin-list-item {
+  padding: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  background: #f8f3e7;
+
+  border-radius: 12px;
+}
+
+.admin-list-main {
+  min-width: 0;
+}
+
+.admin-list-title-row {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+}
+
+.admin-list-title-row h3 {
+  margin: 0;
+
+  font-family: Georgia, serif;
+
+  font-size: 1.25rem;
+}
+
+.admin-list-slug {
+  margin: 5px 0 0;
+
+  color: #1f5a5f;
+
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.admin-list-description {
+  max-width: 720px;
+
+  margin: 8px 0 0;
+
+  color: #737c81;
+
+  line-height: 1.5;
+}
+
+.admin-list-meta {
+  display: grid;
+
+  justify-items: end;
+
+  gap: 10px;
+
+  flex: 0 0 auto;
+}
+
+.admin-list-meta > span {
+  color: #737c81;
+
+  font-size: 0.8rem;
+}
+
+.admin-status-badge {
+  padding: 5px 8px;
+
+  border-radius: 999px;
+
+  font-size: 0.68rem;
+  font-weight: 900;
+
+  text-transform: uppercase;
+}
+
+.admin-status-badge.published {
+  color: #25613e;
+
+  background: #dceee1;
+}
+
+.admin-status-badge.draft {
+  color: #755c16;
+
+  background: #f3e7bd;
+}
+
+.admin-status-badge.archived {
+  color: #737c81;
+
+  background: #e7e7e4;
+}
+
+.admin-empty-state {
+  padding: 30px;
+
+  text-align: center;
+
+  background: #f8f3e7;
+
+  border-radius: 12px;
+}
+
+.admin-empty-state h3 {
+  margin-top: 0;
+
+  font-family: Georgia, serif;
+}
+
+.admin-empty-state p {
+  margin-bottom: 0;
+
+  color: #737c81;
+}
+
+/* =========================================================
    RESPONSIVE
    ========================================================= */
 
@@ -456,5 +747,27 @@
     padding: 8px 11px;
 
     font-size: 0.8rem;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE TOPIC ADMIN
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-list-item {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .admin-list-meta {
+    width: 100%;
+
+    justify-items: start;
   }
 }

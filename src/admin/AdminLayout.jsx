@@ -11,6 +11,7 @@ export default function AdminLayout() {
 
           <div>
             <span>Histopository</span>
+
             <small>Admin</small>
           </div>
         </Link>
@@ -24,6 +25,15 @@ export default function AdminLayout() {
             }
           >
             Dashboard
+          </NavLink>
+
+          <NavLink
+            to="/admin/topics"
+            className={({ isActive }) =>
+              isActive ? "admin-nav-link active" : "admin-nav-link"
+            }
+          >
+            Topics
           </NavLink>
 
           <Link to="/learn" className="admin-view-site">
