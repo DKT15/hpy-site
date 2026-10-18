@@ -12,12 +12,14 @@ import LearnPage from "./pages/LearnPage";
 import QuizPage from "./pages/QuizPage";
 import DailyPage from "./pages/DailyPage";
 import ProfilePage from "./pages/ProfilePage";
+import CoursePage from "./pages/CoursePage";
 
 import RequireAdmin from "./admin/RequireAdmin";
 import AdminLayout from "./admin/AdminLayout";
 import AdminDashboard from "./admin/AdminDashboard";
 import TopicsAdmin from "./admin/TopicsAdmin";
 import CoursesAdmin from "./admin/CoursesAdmin";
+import LessonsAdmin from "./admin/LessonsAdmin";
 
 import { supabase } from "./lib/supabase";
 
@@ -67,6 +69,7 @@ export default function App() {
 
       <Route element={<AppLayout />}>
         <Route path="/learn" element={<LearnPage />} />
+        <Route path="/course/:courseSlug" element={<CoursePage />} />
         <Route path="/lesson/:lessonSlug" element={<QuizPage />} />
         <Route path="/daily" element={<DailyPage />} />
         <Route path="/profile" element={<ProfilePage />} />
@@ -84,6 +87,7 @@ export default function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="topics" element={<TopicsAdmin />} />
           <Route path="courses" element={<CoursesAdmin />} />
+          <Route path="lessons" element={<LessonsAdmin />} />
         </Route>
       </Route>
     </Routes>

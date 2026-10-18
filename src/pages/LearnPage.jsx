@@ -578,11 +578,7 @@ export default function LearnPage() {
                       {lessonCount} {lessonCount === 1 ? "lesson" : "lessons"}
                     </span>
 
-                    {course.lessons?.[0] && (
-                      <Link to={`/lesson/${course.lessons[0].slug}`}>
-                        Explore →
-                      </Link>
-                    )}
+                    <Link to={`/course/${course.slug}`}>Explore</Link>
                   </div>
                 </div>
               </article>

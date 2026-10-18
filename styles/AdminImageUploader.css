@@ -1,0 +1,233 @@
+/* =========================================================
+   HISTOPOSITORY ADMIN — CONTENT IMAGE UPLOADER
+   ========================================================= */
+
+.admin-image-uploader {
+  padding: 20px;
+
+  display: grid;
+
+  gap: 18px;
+
+  background: #f8f3e7;
+
+  border: 1px solid rgba(6, 31, 49, 0.08);
+
+  border-radius: 12px;
+}
+
+.admin-image-uploader-heading label {
+  color: #061f31;
+
+  font-size: 0.86rem;
+
+  font-weight: 850;
+}
+
+.admin-image-uploader-heading p {
+  margin: 5px 0 0;
+
+  color: #737c81;
+
+  font-size: 0.8rem;
+
+  line-height: 1.5;
+}
+
+.admin-image-uploader-body {
+  display: grid;
+
+  grid-template-columns:
+    minmax(180px, 280px)
+    minmax(0, 1fr);
+
+  gap: 22px;
+
+  align-items: start;
+}
+
+/* =========================================================
+   PREVIEW
+   ========================================================= */
+
+.admin-image-preview {
+  width: 100%;
+
+  aspect-ratio: 16 / 9;
+
+  overflow: hidden;
+
+  border-radius: 10px;
+}
+
+.admin-image-preview.has-image {
+  background: #061f31;
+}
+
+.admin-image-preview.has-image img {
+  width: 100%;
+
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+
+  object-position: center;
+}
+
+.admin-image-preview.no-image {
+  display: grid;
+
+  place-items: center;
+
+  color: rgba(241, 230, 201, 0.72);
+
+  background: linear-gradient(135deg, #0c394b, #061f31);
+
+  font-family: Georgia, "Times New Roman", serif;
+
+  font-size: 1rem;
+
+  font-weight: 700;
+}
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+
+.admin-image-controls {
+  min-width: 0;
+
+  display: grid;
+
+  gap: 14px;
+}
+
+.admin-image-input {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 10px;
+
+  color: #061f31;
+
+  background: #fff;
+
+  border: 1px solid rgba(6, 31, 49, 0.18);
+
+  border-radius: 9px;
+
+  font: inherit;
+}
+
+.admin-image-input::file-selector-button {
+  margin-right: 12px;
+
+  padding: 8px 12px;
+
+  color: #061f31;
+
+  background: #f1e6c9;
+
+  border: 0;
+
+  border-radius: 7px;
+
+  font: inherit;
+
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.admin-image-file-info {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 6px 14px;
+}
+
+.admin-image-file-info strong {
+  max-width: 100%;
+
+  overflow-wrap: anywhere;
+
+  color: #061f31;
+
+  font-size: 0.84rem;
+}
+
+.admin-image-file-info span {
+  color: #737c81;
+
+  font-size: 0.8rem;
+}
+
+.admin-image-actions {
+  display: flex;
+
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 12px;
+}
+
+.admin-image-remove {
+  min-height: 44px;
+
+  padding: 0 16px;
+
+  color: #873f37;
+
+  background: transparent;
+
+  border: 1px solid rgba(135, 63, 55, 0.28);
+
+  border-radius: 9px;
+
+  font: inherit;
+
+  font-weight: 850;
+
+  cursor: pointer;
+}
+
+.admin-image-remove:disabled {
+  cursor: wait;
+
+  opacity: 0.6;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .admin-image-uploader-body {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-image-preview {
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-image-uploader {
+    padding: 16px;
+  }
+
+  .admin-image-actions {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+  .admin-image-actions button {
+    width: 100%;
+  }
+}

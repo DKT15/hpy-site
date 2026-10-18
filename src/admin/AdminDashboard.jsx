@@ -26,7 +26,7 @@ const CONTENT_TABLES = [
     table: "lessons",
     label: "Lessons",
     description: "Create the individual learning experiences.",
-    path: null,
+    path: "/admin/lessons",
   },
 
   {
@@ -92,6 +92,7 @@ export default function AdminDashboard() {
       });
 
       setCounts(nextCounts);
+
       setLoading(false);
     }
 
@@ -130,7 +131,7 @@ export default function AdminDashboard() {
             <h2>Content overview</h2>
           </div>
 
-          <p>Manage Histopository learning structure.</p>
+          <p>Manage Histopository&apos;s learning structure.</p>
         </div>
 
         {error && <p className="admin-message error">{error}</p>}

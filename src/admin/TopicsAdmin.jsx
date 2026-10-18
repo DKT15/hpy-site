@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+
 import { supabase } from "../lib/supabase";
+
 import AppLoading from "../components/AppLoading";
+import ContentImageUploader from "./ContentImageUploader";
 
 const EMPTY_FORM = {
   name: "",
@@ -25,6 +28,8 @@ export default function TopicsAdmin() {
   const [form, setForm] = useState(EMPTY_FORM);
 
   const [editingId, setEditingId] = useState(null);
+
+  const [editingImageUrl, setEditingImageUrl] = useState(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -75,6 +80,7 @@ export default function TopicsAdmin() {
     }
 
     setTopics(data ?? []);
+
     setLoading(false);
   }
 
@@ -88,6 +94,8 @@ export default function TopicsAdmin() {
 
   function resetForm() {
     setEditingId(null);
+
+    setEditingImageUrl(null);
 
     setForm({
       ...EMPTY_FORM,
@@ -106,12 +114,12 @@ export default function TopicsAdmin() {
       name,
 
       /*
-        Automatically build the slug while creating
-        a new topic.
+          Automatically build the slug while creating
+          a new topic.
 
-        When editing, we do not overwrite the slug
-        every time the name changes.
-      */
+          When editing, do not overwrite the slug every
+          time the name changes.
+        */
 
       slug: editingId ? current.slug : createSlug(name),
     }));
@@ -127,6 +135,8 @@ export default function TopicsAdmin() {
 
   function handleEdit(topic) {
     setEditingId(topic.id);
+
+    setEditingImageUrl(topic.image_url ?? null);
 
     setForm({
       name: topic.name ?? "",
@@ -150,7 +160,42 @@ export default function TopicsAdmin() {
   }
 
   /* =======================================================
-     SAVE
+     IMAGE
+     ======================================================= */
+
+  async function handleImageChange(imageUrl) {
+    if (!editingId) {
+      throw new Error("A topic must exist before an image can be attached.");
+    }
+
+    const { error: imageError } = await supabase
+      .from("topics")
+      .update({
+        image_url: imageUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", editingId);
+
+    if (imageError) {
+      throw imageError;
+    }
+
+    setEditingImageUrl(imageUrl);
+
+    setTopics((currentTopics) =>
+      currentTopics.map((topic) =>
+        topic.id === editingId
+          ? {
+              ...topic,
+              image_url: imageUrl,
+            }
+          : topic,
+      ),
+    );
+  }
+
+  /* =======================================================
+     SAVE TOPIC
      ======================================================= */
 
   async function handleSubmit(event) {
@@ -194,6 +239,7 @@ export default function TopicsAdmin() {
 
     const payload = {
       name,
+
       slug,
 
       description: description || null,
@@ -234,9 +280,13 @@ export default function TopicsAdmin() {
       return;
     }
 
-    setMessage(editingId ? "Topic updated." : "Topic created.");
+    setMessage(
+      editingId ? "Topic updated." : "Topic created. Edit it to add an image.",
+    );
 
     setEditingId(null);
+
+    setEditingImageUrl(null);
 
     setForm({
       ...EMPTY_FORM,
@@ -387,6 +437,30 @@ export default function TopicsAdmin() {
             </div>
           </div>
 
+          {/* ===============================================
+              IMAGE
+
+              New topics must first be saved so they have
+              a stable database/storage ID.
+              =============================================== */}
+
+          {editingId ? (
+            <ContentImageUploader
+              itemId={editingId}
+              folder="topics"
+              currentImageUrl={editingImageUrl}
+              onImageChange={handleImageChange}
+            />
+          ) : (
+            <div className="admin-image-uploader">
+              <div className="admin-image-uploader-heading">
+                <label>Content image</label>
+
+                <p>Create the topic first, then edit it to upload its image.</p>
+              </div>
+            </div>
+          )}
+
           {error && <p className="admin-message error">{error}</p>}
 
           {message && <p className="admin-message success">{message}</p>}
@@ -447,6 +521,8 @@ export default function TopicsAdmin() {
                 </div>
 
                 <div className="admin-list-meta">
+                  <span>{topic.image_url ? "Image added" : "No image"}</span>
+
                   <span>Order {topic.sort_order}</span>
 
                   <button
