@@ -36,6 +36,15 @@ export default function AdminLayout() {
             Topics
           </NavLink>
 
+          <NavLink
+            to="/admin/courses"
+            className={({ isActive }) =>
+              isActive ? "admin-nav-link active" : "admin-nav-link"
+            }
+          >
+            Courses
+          </NavLink>
+
           <Link to="/learn" className="admin-view-site">
             View site
           </Link>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { Link } from "react-router-dom";
+
 import { supabase } from "../lib/supabase";
 
 const CONTENT_TABLES = [
@@ -8,24 +10,31 @@ const CONTENT_TABLES = [
     table: "topics",
     label: "Topics",
     description: "Organise Histopository into broad historical areas.",
+    path: "/admin/topics",
   },
+
   {
     key: "courses",
     table: "courses",
     label: "Courses",
     description: "Build structured courses inside each topic.",
+    path: "/admin/courses",
   },
+
   {
     key: "lessons",
     table: "lessons",
     label: "Lessons",
     description: "Create the individual learning experiences.",
+    path: null,
   },
+
   {
     key: "questions",
     table: "questions",
     label: "Questions",
     description: "Manage quiz questions and Daily Challenge content.",
+    path: null,
   },
 ];
 
@@ -38,6 +47,7 @@ export default function AdminDashboard() {
   });
 
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -120,7 +130,7 @@ export default function AdminDashboard() {
             <h2>Content overview</h2>
           </div>
 
-          <p>Editing tools will be added in the next step.</p>
+          <p>Manage Histopository learning structure.</p>
         </div>
 
         {error && <p className="admin-message error">{error}</p>}
@@ -138,7 +148,15 @@ export default function AdminDashboard() {
 
               <p>{item.description}</p>
 
-              <span className="admin-coming-soon">Management coming next</span>
+              {item.path ? (
+                <Link to={item.path} className="admin-coming-soon">
+                  Manage {item.label.toLowerCase()} →
+                </Link>
+              ) : (
+                <span className="admin-coming-soon">
+                  Management coming next
+                </span>
+              )}
             </article>
           ))}
         </div>

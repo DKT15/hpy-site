@@ -33,13 +33,22 @@ export default function LearnPage() {
       setLoading(true);
       setError("");
 
+      /* =====================================================
+         USER
+         ===================================================== */
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       setUser(user ?? null);
 
+      /* =====================================================
+         DAILY CHALLENGE
+         ===================================================== */
+
       const today = getLocalDateString();
+
       const browserTimezone = getBrowserTimezone();
 
       const { data: dailyData, error: dailyError } = await supabase.rpc(
@@ -58,48 +67,111 @@ export default function LearnPage() {
         setDailyChallenge(loadedDaily ?? null);
       }
 
+      /* =====================================================
+         PUBLISHED LEARNING CONTENT
+
+         Admins are allowed to read draft / archived content
+         through RLS because the CMS needs it.
+
+         The learner-facing page must therefore independently
+         restrict itself to published content.
+         ===================================================== */
+
       const { data: topicsData, error: topicsError } = await supabase
         .from("topics")
         .select(
           `
+            id,
+            name,
+            slug,
+            description,
+            image_url,
+            status,
+            sort_order,
+            courses (
               id,
               name,
               slug,
               description,
               image_url,
+              status,
               sort_order,
-              courses (
+              lessons (
                 id,
                 name,
                 slug,
                 description,
-                image_url,
-                sort_order,
-                lessons (
-                  id,
-                  name,
-                  slug,
-                  description,
-                  xp_reward,
-                  sort_order
-                )
+                xp_reward,
+                status,
+                sort_order
               )
-            `,
+            )
+          `,
         )
+        .eq("status", "published")
         .order("sort_order");
 
       if (topicsError) {
         console.error(topicsError);
+
         setError("Could not load learning content.");
+
         setLoading(false);
+
         return;
       }
 
-      setTopics(topicsData ?? []);
+      /*
+        Filter nested content as well.
+
+        This is necessary for admin accounts because their
+        RLS policy intentionally allows them to read all
+        course and lesson statuses.
+      */
+
+      const publishedTopics = (topicsData ?? [])
+        .filter((topic) => topic.status === "published")
+        .map((topic) => ({
+          ...topic,
+
+          courses: (topic.courses ?? [])
+            .filter((course) => course.status === "published")
+            .map((course) => ({
+              ...course,
+
+              lessons: (course.lessons ?? []).filter(
+                (lesson) => lesson.status === "published",
+              ),
+            })),
+        }));
+
+      setTopics(publishedTopics);
+
+      /*
+        Build a set of lesson IDs that are currently allowed
+        to appear on the learner-facing site.
+
+        We use this below so an admin's saved progress cannot
+        cause an archived/draft lesson to reappear through
+        "Continue learning".
+      */
+
+      const publishedLessonIds = new Set(
+        publishedTopics.flatMap((topic) =>
+          (topic.courses ?? []).flatMap((course) =>
+            (course.lessons ?? []).map((lesson) => lesson.id),
+          ),
+        ),
+      );
+
+      /* =====================================================
+         SIGNED-IN PROFILE + PROGRESS
+         ===================================================== */
 
       if (user) {
         const [
           { data: profileData, error: profileError },
+
           { data: progressData, error: progressError },
         ] = await Promise.all([
           supabase
@@ -153,7 +225,19 @@ export default function LearnPage() {
         if (progressError) {
           console.error(progressError);
         } else {
-          setProgress(progressData ?? []);
+          /*
+            Only learner-visible lessons are allowed to
+            contribute to Continue Learning on this page.
+
+            Historical progress remains safely stored in
+            Supabase even if content is later archived.
+          */
+
+          const visibleProgress = (progressData ?? []).filter(
+            (item) => item.lessons && publishedLessonIds.has(item.lessons.id),
+          );
+
+          setProgress(visibleProgress);
         }
       }
 
@@ -161,6 +245,14 @@ export default function LearnPage() {
     }
 
     loadDashboard();
+
+    /* =====================================================
+       AUTH STATE
+
+       Preserve the existing logout behaviour so signed-in
+       data disappears immediately without requiring a manual
+       browser refresh.
+       ===================================================== */
 
     const {
       data: { subscription },
@@ -170,12 +262,6 @@ export default function LearnPage() {
       setUser(nextUser);
 
       if (!nextUser) {
-        /*
-          Logging out does not remount /learn when the user is
-          already on that route. Clear account-only dashboard
-          state immediately so signed-in data cannot remain
-          visible until a manual refresh.
-        */
         setProfile(null);
         setProgress([]);
 
@@ -195,9 +281,17 @@ export default function LearnPage() {
     };
   }, []);
 
+  /* =======================================================
+     LOADING
+     ======================================================= */
+
   if (loading) {
     return <AppLoading message="Preparing your learning dashboard..." />;
   }
+
+  /* =======================================================
+     ERROR
+     ======================================================= */
 
   if (error) {
     return (
@@ -206,6 +300,10 @@ export default function LearnPage() {
       </main>
     );
   }
+
+  /* =======================================================
+     DASHBOARD DATA
+     ======================================================= */
 
   const completedLessons = progress.filter(
     (item) => item.status === "completed",
@@ -218,6 +316,7 @@ export default function LearnPage() {
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((course) => ({
         ...course,
+
         topicName: topic.name,
       })),
   );
@@ -239,9 +338,15 @@ export default function LearnPage() {
 
   const displayName = profile?.display_name || "Historian";
 
+  /* =======================================================
+     PAGE
+     ======================================================= */
+
   return (
     <main className="learn-page">
-      {/* WELCOME */}
+      {/* ===================================================
+          WELCOME
+          =================================================== */}
 
       <section className="learn-welcome">
         <div>
@@ -264,11 +369,13 @@ export default function LearnPage() {
           <div className="learn-stats">
             <div>
               <strong>{profile?.current_streak ?? 0}</strong>
+
               <span>Day streak</span>
             </div>
 
             <div>
               <strong>{profile?.total_xp ?? 0}</strong>
+
               <span>Total XP</span>
             </div>
           </div>
@@ -279,7 +386,9 @@ export default function LearnPage() {
         )}
       </section>
 
-      {/* CONTINUE LEARNING */}
+      {/* ===================================================
+          CONTINUE LEARNING
+          =================================================== */}
 
       <section className="learn-section">
         <div className="learn-section-heading">
@@ -330,7 +439,9 @@ export default function LearnPage() {
         )}
       </section>
 
-      {/* DASHBOARD FEATURE CARDS */}
+      {/* ===================================================
+          DASHBOARD FEATURE CARDS
+          =================================================== */}
 
       <section className="learn-feature-grid">
         <article className="learn-feature-card daily-card">
@@ -422,7 +533,9 @@ export default function LearnPage() {
         </article>
       </section>
 
-      {/* COURSES */}
+      {/* ===================================================
+          COURSES
+          =================================================== */}
 
       <section className="learn-section">
         <div className="learn-section-heading">

@@ -17,6 +17,7 @@ import RequireAdmin from "./admin/RequireAdmin";
 import AdminLayout from "./admin/AdminLayout";
 import AdminDashboard from "./admin/AdminDashboard";
 import TopicsAdmin from "./admin/TopicsAdmin";
+import CoursesAdmin from "./admin/CoursesAdmin";
 
 import { supabase } from "./lib/supabase";
 
@@ -82,6 +83,7 @@ export default function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="topics" element={<TopicsAdmin />} />
+          <Route path="courses" element={<CoursesAdmin />} />
         </Route>
       </Route>
     </Routes>
