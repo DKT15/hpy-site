@@ -13,6 +13,7 @@ import QuizPage from "./pages/QuizPage";
 import DailyPage from "./pages/DailyPage";
 import ProfilePage from "./pages/ProfilePage";
 import CoursePage from "./pages/CoursePage";
+import TopicPage from "./pages/TopicPage";
 
 import RequireAdmin from "./admin/RequireAdmin";
 import AdminLayout from "./admin/AdminLayout";
@@ -69,6 +70,7 @@ export default function App() {
 
       <Route element={<AppLayout />}>
         <Route path="/learn" element={<LearnPage />} />
+        <Route path="/topic/:topicSlug" element={<TopicPage />} />
         <Route path="/course/:courseSlug" element={<CoursePage />} />
         <Route path="/lesson/:lessonSlug" element={<QuizPage />} />
         <Route path="/daily" element={<DailyPage />} />

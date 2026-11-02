@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+
 import { supabase } from "../lib/supabase";
+
 import "/styles/LearnPage.css";
+
 import AppLoading from "../components/AppLoading";
 
 function getLocalDateString() {
@@ -9,6 +12,7 @@ function getLocalDateString() {
 
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
+
   const day = String(now.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -20,22 +24,23 @@ function getBrowserTimezone() {
 
 export default function LearnPage() {
   const [user, setUser] = useState(null);
+
   const [profile, setProfile] = useState(null);
+
   const [topics, setTopics] = useState([]);
+
   const [progress, setProgress] = useState([]);
+
   const [dailyChallenge, setDailyChallenge] = useState(null);
 
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadDashboard() {
       setLoading(true);
       setError("");
-
-      /* =====================================================
-         USER
-         ===================================================== */
 
       const {
         data: { user },
@@ -55,6 +60,7 @@ export default function LearnPage() {
         "get_daily_challenge",
         {
           p_challenge_date: today,
+
           p_timezone: browserTimezone,
         },
       );
@@ -68,13 +74,7 @@ export default function LearnPage() {
       }
 
       /* =====================================================
-         PUBLISHED LEARNING CONTENT
-
-         Admins are allowed to read draft / archived content
-         through RLS because the CMS needs it.
-
-         The learner-facing page must therefore independently
-         restrict itself to published content.
+         PUBLISHED CONTENT
          ===================================================== */
 
       const { data: topicsData, error: topicsError } = await supabase
@@ -84,6 +84,7 @@ export default function LearnPage() {
             id,
             name,
             slug,
+            eyebrow,
             description,
             image_url,
             status,
@@ -122,11 +123,10 @@ export default function LearnPage() {
       }
 
       /*
-        Filter nested content as well.
+        Admin accounts may read draft and archived nested
+        content through their CMS policies.
 
-        This is necessary for admin accounts because their
-        RLS policy intentionally allows them to read all
-        course and lesson statuses.
+        Explicitly filter learner-facing content.
       */
 
       const publishedTopics = (topicsData ?? [])
@@ -139,22 +139,14 @@ export default function LearnPage() {
             .map((course) => ({
               ...course,
 
-              lessons: (course.lessons ?? []).filter(
-                (lesson) => lesson.status === "published",
-              ),
-            })),
+              lessons: (course.lessons ?? [])
+                .filter((lesson) => lesson.status === "published")
+                .sort((a, b) => a.sort_order - b.sort_order),
+            }))
+            .sort((a, b) => a.sort_order - b.sort_order),
         }));
 
       setTopics(publishedTopics);
-
-      /*
-        Build a set of lesson IDs that are currently allowed
-        to appear on the learner-facing site.
-
-        We use this below so an admin's saved progress cannot
-        cause an archived/draft lesson to reappear through
-        "Continue learning".
-      */
 
       const publishedLessonIds = new Set(
         publishedTopics.flatMap((topic) =>
@@ -165,7 +157,7 @@ export default function LearnPage() {
       );
 
       /* =====================================================
-         SIGNED-IN PROFILE + PROGRESS
+         PROFILE + PROGRESS
          ===================================================== */
 
       if (user) {
@@ -225,14 +217,6 @@ export default function LearnPage() {
         if (progressError) {
           console.error(progressError);
         } else {
-          /*
-            Only learner-visible lessons are allowed to
-            contribute to Continue Learning on this page.
-
-            Historical progress remains safely stored in
-            Supabase even if content is later archived.
-          */
-
           const visibleProgress = (progressData ?? []).filter(
             (item) => item.lessons && publishedLessonIds.has(item.lessons.id),
           );
@@ -245,14 +229,6 @@ export default function LearnPage() {
     }
 
     loadDashboard();
-
-    /* =====================================================
-       AUTH STATE
-
-       Preserve the existing logout behaviour so signed-in
-       data disappears immediately without requiring a manual
-       browser refresh.
-       ===================================================== */
 
     const {
       data: { subscription },
@@ -281,17 +257,9 @@ export default function LearnPage() {
     };
   }, []);
 
-  /* =======================================================
-     LOADING
-     ======================================================= */
-
   if (loading) {
     return <AppLoading message="Preparing your learning dashboard..." />;
   }
-
-  /* =======================================================
-     ERROR
-     ======================================================= */
 
   if (error) {
     return (
@@ -312,20 +280,16 @@ export default function LearnPage() {
   const recentProgress = progress[0];
 
   const allCourses = topics.flatMap((topic) =>
-    (topic.courses ?? [])
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((course) => ({
-        ...course,
+    (topic.courses ?? []).map((course) => ({
+      ...course,
 
-        topicName: topic.name,
-      })),
+      topicName: topic.name,
+    })),
   );
 
   const firstCourse = allCourses[0];
 
-  const firstLesson = firstCourse?.lessons?.sort(
-    (a, b) => a.sort_order - b.sort_order,
-  )[0];
+  const firstLesson = firstCourse?.lessons?.[0];
 
   const continueLesson = recentProgress?.lessons ?? firstLesson ?? null;
 
@@ -337,10 +301,6 @@ export default function LearnPage() {
   const continueCourseImage = continueCourse?.image_url ?? null;
 
   const displayName = profile?.display_name || "Historian";
-
-  /* =======================================================
-     PAGE
-     ======================================================= */
 
   return (
     <main className="learn-page">
@@ -534,7 +494,7 @@ export default function LearnPage() {
       </section>
 
       {/* ===================================================
-          COURSES
+          TOPICS
           =================================================== */}
 
       <section className="learn-section">
@@ -547,38 +507,38 @@ export default function LearnPage() {
         </div>
 
         <div className="course-grid">
-          {allCourses.map((course, index) => {
-            const lessonCount = course.lessons?.length ?? 0;
+          {topics.map((topic, index) => {
+            const courseCount = topic.courses?.length ?? 0;
 
             return (
-              <article className="course-card" key={course.id}>
+              <article className="course-card" key={topic.id}>
                 <div
                   className={`course-card-image course-image-${
                     (index % 4) + 1
-                  } ${course.image_url ? "has-image" : "no-image"}`}
+                  } ${topic.image_url ? "has-image" : "no-image"}`}
                 >
-                  {course.image_url ? (
-                    <img src={course.image_url} alt="" />
+                  {topic.image_url ? (
+                    <img src={topic.image_url} alt="" />
                   ) : (
                     <span aria-hidden="true">
-                      {course.name.charAt(0).toUpperCase()}
+                      {topic.name.charAt(0).toUpperCase()}
                     </span>
                   )}
                 </div>
 
                 <div className="course-card-body">
-                  <span>{course.topicName}</span>
+                  <span>{topic.eyebrow || "HISTORY TOPIC"}</span>
 
-                  <h3>{course.name}</h3>
+                  <h3>{topic.name}</h3>
 
-                  <p>{course.description}</p>
+                  <p>{topic.description}</p>
 
                   <div className="course-card-footer">
                     <span>
-                      {lessonCount} {lessonCount === 1 ? "lesson" : "lessons"}
+                      {courseCount} {courseCount === 1 ? "course" : "courses"}
                     </span>
 
-                    <Link to={`/course/${course.slug}`}>Explore</Link>
+                    <Link to={`/topic/${topic.slug}`}>Explore →</Link>
                   </div>
                 </div>
               </article>

@@ -7,6 +7,7 @@ import ContentImageUploader from "./ContentImageUploader";
 
 const EMPTY_FORM = {
   name: "",
+  eyebrow: "",
   slug: "",
   description: "",
   status: "draft",
@@ -39,10 +40,6 @@ export default function TopicsAdmin() {
 
   const [message, setMessage] = useState("");
 
-  /* =======================================================
-     LOAD TOPICS
-     ======================================================= */
-
   async function loadTopics() {
     setLoading(true);
     setError("");
@@ -51,16 +48,17 @@ export default function TopicsAdmin() {
       .from("topics")
       .select(
         `
-          id,
-          name,
-          slug,
-          description,
-          image_url,
-          status,
-          sort_order,
-          created_at,
-          updated_at
-        `,
+        id,
+        name,
+        eyebrow,
+        slug,
+        description,
+        image_url,
+        status,
+        sort_order,
+        created_at,
+        updated_at
+      `,
       )
       .order("sort_order", {
         ascending: true,
@@ -88,10 +86,6 @@ export default function TopicsAdmin() {
     loadTopics();
   }, []);
 
-  /* =======================================================
-     FORM HELPERS
-     ======================================================= */
-
   function resetForm() {
     setEditingId(null);
 
@@ -113,14 +107,6 @@ export default function TopicsAdmin() {
 
       name,
 
-      /*
-          Automatically build the slug while creating
-          a new topic.
-
-          When editing, do not overwrite the slug every
-          time the name changes.
-        */
-
       slug: editingId ? current.slug : createSlug(name),
     }));
   }
@@ -141,6 +127,8 @@ export default function TopicsAdmin() {
     setForm({
       name: topic.name ?? "",
 
+      eyebrow: topic.eyebrow ?? "",
+
       slug: topic.slug ?? "",
 
       description: topic.description ?? "",
@@ -159,10 +147,6 @@ export default function TopicsAdmin() {
     });
   }
 
-  /* =======================================================
-     IMAGE
-     ======================================================= */
-
   async function handleImageChange(imageUrl) {
     if (!editingId) {
       throw new Error("A topic must exist before an image can be attached.");
@@ -172,6 +156,7 @@ export default function TopicsAdmin() {
       .from("topics")
       .update({
         image_url: imageUrl,
+
         updated_at: new Date().toISOString(),
       })
       .eq("id", editingId);
@@ -187,16 +172,13 @@ export default function TopicsAdmin() {
         topic.id === editingId
           ? {
               ...topic,
+
               image_url: imageUrl,
             }
           : topic,
       ),
     );
   }
-
-  /* =======================================================
-     SAVE TOPIC
-     ======================================================= */
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -207,6 +189,8 @@ export default function TopicsAdmin() {
 
     const name = form.name.trim();
 
+    const eyebrow = form.eyebrow.trim();
+
     const slug = createSlug(form.slug);
 
     const description = form.description.trim();
@@ -215,6 +199,14 @@ export default function TopicsAdmin() {
 
     if (!name) {
       setError("Topic name is required.");
+
+      setSaving(false);
+
+      return;
+    }
+
+    if (eyebrow.length > 40) {
+      setError("Display label must be 40 characters or fewer.");
 
       setSaving(false);
 
@@ -239,6 +231,8 @@ export default function TopicsAdmin() {
 
     const payload = {
       name,
+
+      eyebrow: eyebrow || null,
 
       slug,
 
@@ -297,17 +291,9 @@ export default function TopicsAdmin() {
     setSaving(false);
   }
 
-  /* =======================================================
-     LOADING
-     ======================================================= */
-
   if (loading) {
     return <AppLoading message="Loading topics..." />;
   }
-
-  /* =======================================================
-     PAGE
-     ======================================================= */
 
   return (
     <div className="admin-dashboard">
@@ -323,10 +309,6 @@ export default function TopicsAdmin() {
           </p>
         </div>
       </section>
-
-      {/* ===================================================
-          EDITOR
-          =================================================== */}
 
       <section className="admin-section">
         <div className="admin-section-heading">
@@ -364,17 +346,36 @@ export default function TopicsAdmin() {
             </div>
 
             <div className="admin-field">
-              <label htmlFor="topic-slug">Slug</label>
+              <label htmlFor="topic-eyebrow">Display label</label>
 
               <input
-                id="topic-slug"
+                id="topic-eyebrow"
                 type="text"
-                value={form.slug}
-                onChange={handleSlugChange}
-                placeholder="ancient-history"
-                required
+                maxLength={40}
+                value={form.eyebrow}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+
+                    eyebrow: event.target.value,
+                  }))
+                }
+                placeholder="Ancient World"
               />
             </div>
+          </div>
+
+          <div className="admin-field">
+            <label htmlFor="topic-slug">Slug</label>
+
+            <input
+              id="topic-slug"
+              type="text"
+              value={form.slug}
+              onChange={handleSlugChange}
+              placeholder="ancient-history"
+              required
+            />
           </div>
 
           <div className="admin-field">
@@ -437,13 +438,6 @@ export default function TopicsAdmin() {
             </div>
           </div>
 
-          {/* ===============================================
-              IMAGE
-
-              New topics must first be saved so they have
-              a stable database/storage ID.
-              =============================================== */}
-
           {editingId ? (
             <ContentImageUploader
               itemId={editingId}
@@ -474,10 +468,6 @@ export default function TopicsAdmin() {
           </button>
         </form>
       </section>
-
-      {/* ===================================================
-          TOPIC LIST
-          =================================================== */}
 
       <section className="admin-section">
         <div className="admin-section-heading">
@@ -510,6 +500,10 @@ export default function TopicsAdmin() {
                       {topic.status}
                     </span>
                   </div>
+
+                  <p className="admin-list-slug">
+                    {topic.eyebrow || "HISTORY TOPIC"}
+                  </p>
 
                   <p className="admin-list-slug">/{topic.slug}</p>
 
