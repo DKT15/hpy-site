@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 
 import { supabase } from "../lib/supabase";
+
 import AppLoading from "../components/AppLoading";
+import ContentImageUploader from "./ContentImageUploader";
 
 const EMPTY_FORM = {
   topic_id: "",
@@ -28,6 +30,8 @@ export default function CoursesAdmin() {
   const [form, setForm] = useState(EMPTY_FORM);
 
   const [editingId, setEditingId] = useState(null);
+
+  const [editingImageUrl, setEditingImageUrl] = useState(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -130,6 +134,8 @@ export default function CoursesAdmin() {
   function resetForm() {
     setEditingId(null);
 
+    setEditingImageUrl(null);
+
     setForm({
       ...EMPTY_FORM,
     });
@@ -161,6 +167,8 @@ export default function CoursesAdmin() {
   function handleEdit(course) {
     setEditingId(course.id);
 
+    setEditingImageUrl(course.image_url ?? null);
+
     setForm({
       topic_id: course.topic_id ?? "",
 
@@ -185,7 +193,44 @@ export default function CoursesAdmin() {
   }
 
   /* =======================================================
-     SAVE
+     IMAGE
+     ======================================================= */
+
+  async function handleImageChange(imageUrl) {
+    if (!editingId) {
+      throw new Error("A course must exist before an image can be attached.");
+    }
+
+    const { error: imageError } = await supabase
+      .from("courses")
+      .update({
+        image_url: imageUrl,
+
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", editingId);
+
+    if (imageError) {
+      throw imageError;
+    }
+
+    setEditingImageUrl(imageUrl);
+
+    setCourses((currentCourses) =>
+      currentCourses.map((course) =>
+        course.id === editingId
+          ? {
+              ...course,
+
+              image_url: imageUrl,
+            }
+          : course,
+      ),
+    );
+  }
+
+  /* =======================================================
+     SAVE COURSE
      ======================================================= */
 
   async function handleSubmit(event) {
@@ -238,15 +283,6 @@ export default function CoursesAdmin() {
     }
 
     const selectedTopic = topics.find((topic) => topic.id === topicId);
-
-    /*
-      Avoid publishing a course underneath a topic
-      which itself is not published.
-
-      This is a CMS UX rule rather than the security
-      boundary — Supabase RLS remains the real access
-      control.
-    */
 
     if (form.status === "published" && selectedTopic?.status !== "published") {
       setError("Publish the parent topic before publishing this course.");
@@ -301,9 +337,15 @@ export default function CoursesAdmin() {
       return;
     }
 
-    setMessage(editingId ? "Course updated." : "Course created.");
+    setMessage(
+      editingId
+        ? "Course updated."
+        : "Course created. Edit it to add an image.",
+    );
 
     setEditingId(null);
+
+    setEditingImageUrl(null);
 
     setForm({
       ...EMPTY_FORM,
@@ -391,6 +433,7 @@ export default function CoursesAdmin() {
                 {topics.map((topic) => (
                   <option value={topic.id} key={topic.id}>
                     {topic.name}
+
                     {topic.status !== "published" ? ` (${topic.status})` : ""}
                   </option>
                 ))}
@@ -484,6 +527,29 @@ export default function CoursesAdmin() {
               </div>
             </div>
 
+            {/* ===============================================
+                COURSE IMAGE
+                =============================================== */}
+
+            {editingId ? (
+              <ContentImageUploader
+                itemId={editingId}
+                folder="courses"
+                currentImageUrl={editingImageUrl}
+                onImageChange={handleImageChange}
+              />
+            ) : (
+              <div className="admin-image-uploader">
+                <div className="admin-image-uploader-heading">
+                  <label>Content image</label>
+
+                  <p>
+                    Create the course first, then edit it to upload its image.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {error && <p className="admin-message error">{error}</p>}
 
             {message && <p className="admin-message success">{message}</p>}
@@ -553,6 +619,8 @@ export default function CoursesAdmin() {
                 </div>
 
                 <div className="admin-list-meta">
+                  <span>{course.image_url ? "Image added" : "No image"}</span>
+
                   <span>Order {course.sort_order}</span>
 
                   <button

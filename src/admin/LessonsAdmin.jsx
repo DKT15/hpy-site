@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 
 import { supabase } from "../lib/supabase";
+
 import AppLoading from "../components/AppLoading";
+import ContentImageUploader from "./ContentImageUploader";
 
 const EMPTY_FORM = {
   course_id: "",
@@ -32,11 +34,14 @@ function getRelationItem(value) {
 
 export default function LessonsAdmin() {
   const [courses, setCourses] = useState([]);
+
   const [lessons, setLessons] = useState([]);
 
   const [form, setForm] = useState(EMPTY_FORM);
 
   const [editingId, setEditingId] = useState(null);
+
+  const [editingImageUrl, setEditingImageUrl] = useState(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -152,6 +157,8 @@ export default function LessonsAdmin() {
   function resetForm() {
     setEditingId(null);
 
+    setEditingImageUrl(null);
+
     setForm({
       ...EMPTY_FORM,
     });
@@ -183,6 +190,8 @@ export default function LessonsAdmin() {
   function handleEdit(lesson) {
     setEditingId(lesson.id);
 
+    setEditingImageUrl(lesson.image_url ?? null);
+
     setForm({
       course_id: lesson.course_id ?? "",
 
@@ -206,6 +215,43 @@ export default function LessonsAdmin() {
       top: 0,
       behavior: "smooth",
     });
+  }
+
+  /* =======================================================
+     IMAGE
+     ======================================================= */
+
+  async function handleImageChange(imageUrl) {
+    if (!editingId) {
+      throw new Error("A lesson must exist before an image can be attached.");
+    }
+
+    const { error: imageError } = await supabase
+      .from("lessons")
+      .update({
+        image_url: imageUrl,
+
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", editingId);
+
+    if (imageError) {
+      throw imageError;
+    }
+
+    setEditingImageUrl(imageUrl);
+
+    setLessons((currentLessons) =>
+      currentLessons.map((lesson) =>
+        lesson.id === editingId
+          ? {
+              ...lesson,
+
+              image_url: imageUrl,
+            }
+          : lesson,
+      ),
+    );
   }
 
   /* =======================================================
@@ -338,9 +384,15 @@ export default function LessonsAdmin() {
       return;
     }
 
-    setMessage(editingId ? "Lesson updated." : "Lesson created.");
+    setMessage(
+      editingId
+        ? "Lesson updated."
+        : "Lesson created. Edit it to add an image.",
+    );
 
     setEditingId(null);
+
+    setEditingImageUrl(null);
 
     setForm({
       ...EMPTY_FORM,
@@ -434,7 +486,9 @@ export default function LessonsAdmin() {
                   return (
                     <option value={course.id} key={course.id}>
                       {topic?.name ? `${topic.name} → ` : ""}
+
                       {course.name}
+
                       {course.status !== "published"
                         ? ` (${course.status})`
                         : ""}
@@ -551,6 +605,29 @@ export default function LessonsAdmin() {
               </select>
             </div>
 
+            {/* ===============================================
+                LESSON IMAGE
+                =============================================== */}
+
+            {editingId ? (
+              <ContentImageUploader
+                itemId={editingId}
+                folder="lessons"
+                currentImageUrl={editingImageUrl}
+                onImageChange={handleImageChange}
+              />
+            ) : (
+              <div className="admin-image-uploader">
+                <div className="admin-image-uploader-heading">
+                  <label>Content image</label>
+
+                  <p>
+                    Create the lesson first, then edit it to upload its image.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {error && <p className="admin-message error">{error}</p>}
 
             {message && <p className="admin-message success">{message}</p>}
@@ -613,7 +690,9 @@ export default function LessonsAdmin() {
 
                     <p className="admin-list-slug">
                       {topic?.name ?? "Unknown topic"}
+
                       {" → "}
+
                       {course?.name ?? "Unknown course"}
                     </p>
 
@@ -627,6 +706,8 @@ export default function LessonsAdmin() {
                   </div>
 
                   <div className="admin-list-meta">
+                    <span>{lesson.image_url ? "Image added" : "No image"}</span>
+
                     <span>{lesson.xp_reward} XP</span>
 
                     <span>Order {lesson.sort_order}</span>

@@ -18,9 +18,11 @@ export default function CoursePage() {
   const { courseSlug } = useParams();
 
   const [course, setCourse] = useState(null);
+
   const [lessons, setLessons] = useState([]);
 
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -82,12 +84,11 @@ export default function CoursePage() {
       const topic = getRelationItem(data.topics);
 
       /*
-        Admins are deliberately allowed to read draft and
-        archived content in Supabase.
+        Admins can read draft and archived content
+        because the CMS requires it.
 
-        This learner-facing page therefore independently
-        requires both the course and parent topic to be
-        published.
+        Learner-facing pages independently enforce
+        published content.
       */
 
       if (data.status !== "published" || topic?.status !== "published") {
@@ -143,8 +144,11 @@ export default function CoursePage() {
 
       <section className="course-hero">
         <div className="course-hero-copy">
-          <Link to="/learn" className="course-back-link">
-            ← Back to learning
+          <Link
+            to={course.topic?.slug ? `/topic/${course.topic.slug}` : "/learn"}
+            className="course-back-link"
+          >
+            ← Back to {course.topic?.name ?? "learning"}
           </Link>
 
           <p className="course-eyebrow">{course.topic?.name ?? "HISTORY"}</p>
@@ -206,6 +210,20 @@ export default function CoursePage() {
               <article className="lesson-card" key={lesson.id}>
                 <div className="lesson-number">
                   {String(index + 1).padStart(2, "0")}
+                </div>
+
+                <div
+                  className={`lesson-card-image ${
+                    lesson.image_url ? "has-image" : "no-image"
+                  }`}
+                >
+                  {lesson.image_url ? (
+                    <img src={lesson.image_url} alt="" />
+                  ) : (
+                    <span aria-hidden="true">
+                      {lesson.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
 
                 <div className="lesson-card-content">
